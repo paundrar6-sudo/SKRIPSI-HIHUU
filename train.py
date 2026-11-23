@@ -34,6 +34,7 @@ import pandas as pd
 import torch
 
 import config
+import features as F
 import modeling as M
 
 NAIF = "Naif (besok = hari ini)"
@@ -70,6 +71,9 @@ def main():
     for k in hasil:
         if k != "LSTM":
             hasil[k]["dm_vs_lstm"] = M.diebold_mariano(err["LSTM"], err[k])
+
+    for k in hasil:
+        hasil[k]["pesaran_timmermann"] = M.pesaran_timmermann(preds[k], actual)
 
     up_share = float(np.mean(actual > 0) * 100)
     print("\n=== Evaluasi data uji (skala IHSG asli) ===")
@@ -113,7 +117,9 @@ def main():
         "n_train": int(len(sp["X_tr"])), "n_val": int(len(sp["X_va"])), "n_test": int(len(sp["X_te"])),
         "epochs": config.EPOCHS, "epochs_stopped": [len(h) for h in hists],
         "sequence_length": L, "hidden_size": config.HIDDEN_SIZE, "num_layers": config.NUM_LAYERS,
-        "seeds": config.SEEDS, "features": config.FEATURE_COLUMNS,
+        "seeds": config.SEEDS, "features": config.FEATURE_COLUMNS, "skenario": F.SKENARIO_INTI,
+        "kurs_source": str(pd.read_csv(config.KURS_CSV)["sumber"].iloc[-1])
+        if "sumber" in pd.read_csv(config.KURS_CSV, nrows=1).columns else "Yahoo",
         "test_start": str(pd.Timestamp(dates_te[0]).date()),
         "test_end": str(pd.Timestamp(dates_te[-1]).date()),
         "data_end": str(df["date"].iloc[-1].date()),

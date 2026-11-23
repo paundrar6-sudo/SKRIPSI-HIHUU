@@ -27,6 +27,13 @@ Perintah lain:
 | Latih + evaluasi data uji | `.\.venv\Scripts\python.exe train.py` |
 | Evaluasi walk-forward 5 lipatan | `.\.venv\Scripts\python.exe evaluate_walkforward.py` |
 | Prediksi H+1 lewat terminal | `.\.venv\Scripts\python.exe predict_realtime.py --bi-rate 6.25 --kurs 18300` |
+| Eksperimen M0-M4, horizon, kepentingan fitur | `.\.venv\Scripts\python.exe experiments.py` |
+| Granger/VAR, event study RDG | `.\.venv\Scripts\python.exe econometrics.py` |
+| Catat prediksi harian (forward test) | `.\.venv\Scripts\python.exe daily_update.py` |
+| Jadwalkan otomatis Senin-Jumat 17:30 | `.\.venv\Scripts\python.exe daily_update.py --pasang-jadwal 17:30` |
+
+Kurs kini diambil dari **JISDOR Bank Indonesia** (sesuai proposal Bab III); Yahoo hanya cadangan.
+Data Yahoo sebelumnya memuat 36 hari lonjakan >1,5% yang tidak ada di JISDOR (JISDOR: 2 hari).
 
 ## Variabel penelitian
 

@@ -19,6 +19,7 @@ Opsi:
     --skip-train     jangan latih ulang (pakai model/ yang sudah ada)
     --no-app         jangan buka dashboard di akhir
     --walkforward    setelah training, jalankan evaluasi walk-forward (lebih lama)
+    --lengkap        jalankan juga experiments.py (M0-M4) dan econometrics.py
 
 Tekan Ctrl+C di terminal untuk menghentikan dashboard.
 """
@@ -35,7 +36,7 @@ os.chdir(HERE)   # semua path relatif (data/, model/) mengacu ke folder proyek
 
 PACKAGES = {  # nama modul -> nama paket pip
     "pandas": "pandas", "numpy": "numpy", "yfinance": "yfinance",
-    "requests": "requests", "sklearn": "scikit-learn", "matplotlib": "matplotlib",
+    "requests": "requests", "openpyxl": "openpyxl", "sklearn": "scikit-learn", "matplotlib": "matplotlib",
     "joblib": "joblib", "torch": "torch",
     "streamlit": "streamlit", "plotly": "plotly", "scipy": "scipy", "statsmodels": "statsmodels",
 }
@@ -97,6 +98,8 @@ def main():
     ap.add_argument("--skip-train", action="store_true")
     ap.add_argument("--no-app", action="store_true")
     ap.add_argument("--walkforward", action="store_true")
+    ap.add_argument("--lengkap", action="store_true",
+                    help="jalankan juga experiments.py dan econometrics.py (lama)")
     args = ap.parse_args()
 
     t0 = time.time()
@@ -115,7 +118,7 @@ def main():
     else:
         fetch_with_fallback("fetch_ihsg.py", "data/ihsg.csv", "data IHSG")
 
-    banner(2, "Kurs USD/IDR asli (Yahoo Finance) - variabel X2")
+    banner(2, "Kurs USD/IDR JISDOR (Bank Indonesia) - variabel X2")
     if args.skip_fetch:
         print("(dilewati)")
     else:
@@ -154,6 +157,11 @@ def main():
         if args.walkforward:
             banner("6b", "Evaluasi walk-forward (5 lipatan)")
             run("evaluate_walkforward.py")
+        if args.lengkap:
+            banner("6c", "Eksperimen M0-M4, horizon, kepentingan fitur")
+            run("experiments.py")
+            banner("6d", "Analisis ekonometrika (Granger/VAR, event study RDG)")
+            run("econometrics.py")
 
     print(f"\nSelesai menyiapkan semuanya dalam {time.time() - t0:.0f} detik.")
 

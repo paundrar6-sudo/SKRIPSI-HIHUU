@@ -4,8 +4,8 @@ lstm_model.py
 Arsitektur LSTM (Long Short-Term Memory) untuk memprediksi return IHSG hari
 bursa berikutnya dari fitur stasioner (lihat features.py):
 
-    [return IHSG, volatilitas IHSG, return kurs USD/IDR, perubahan BI-Rate,
-     level BI-Rate, selisih BI-Rate - Fed Funds Rate]
+    [return IHSG, volatilitas IHSG, return kurs USD/IDR (JISDOR), perubahan BI-Rate,
+     level BI-Rate]   (skenario M3; jumlah fitur mengikuti skenario yang dipakai)
 
 Kenapa LSTM? -- LSTM adalah varian recurrent neural network yang dirancang
 untuk menangkap pola dan ketergantungan jangka pendek-menengah dalam data
@@ -13,7 +13,7 @@ deret waktu, karena memiliki mekanisme "gate" (forget/input/output gate) yang
 menjaga informasi penting dari beberapa langkah waktu sebelumnya tanpa
 mengalami vanishing gradient seperti RNN sederhana.
 
-Model sengaja dibuat kecil (1 layer, 32 unit). Data harian 2021-2026 hanya
+Model sengaja dibuat kecil (1 layer, ukuran dari config.HIDDEN_SIZE). Data harian 2021-2026 hanya
 ~1.400 baris; model besar akan menghafal noise data latih (overfitting).
 """
 import torch

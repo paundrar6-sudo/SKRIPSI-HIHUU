@@ -128,6 +128,8 @@ df = load_dataset()
 last, prev = df.iloc[-1], df.iloc[-2]
 m = load_json(config.METRICS_PATH)
 wf = load_json(config.WALKFORWARD_PATH)
+ex = load_json(config.EXPERIMENTS_PATH)
+eko = load_json(config.ECONOMETRICS_PATH)
 model_siap = os.path.exists(config.MODEL_PATH) and m is not None
 NAIF = "Naif (besok = hari ini)"
 
@@ -140,8 +142,9 @@ st.markdown(f"<p class='eyebrow'>Skripsi · Prediksi IHSG hari bursa berikutnya<
             f"{len(df):,} hari bursa sejak {BULAN[df['date'].min().month - 1]} {df['date'].min().year}</p>",
             unsafe_allow_html=True)
 
-tab_pred, tab_data, tab_xy, tab_eval, tab_met = st.tabs(
-    ["Prediksi H+1", "Data pasar", "Hubungan X dan Y", "Evaluasi model", "Metodologi"])
+tab_pred, tab_data, tab_xy, tab_eval, tab_kontrib, tab_log, tab_met = st.tabs(
+    ["Prediksi H+1", "Data pasar", "Hubungan X dan Y", "Evaluasi model", "Kontribusi variabel",
+     "Rekam jejak", "Metodologi"])
 
 # ===========================================================================
 # TAB 1  PREDIKSI H+1
@@ -520,8 +523,157 @@ with tab_eval:
                 st.markdown(f"<p class='catatan'>Pelatihan berhenti di epoch {m['epochs_stopped']} "
                             f"(early stopping, kesabaran {config.PATIENCE} epoch).</p>", unsafe_allow_html=True)
 
+
+def p_teks(p):
+    return "-" if p is None else f"{p:.3f}"
+
+
 # ===========================================================================
-# TAB 5  METODOLOGI
+# TAB 5  KONTRIBUSI VARIABEL (rumusan masalah 3, hipotesis H1-H3)
+# ===========================================================================
+with tab_kontrib:
+    if ex is None or "ablation" not in ex:
+        st.info("Belum ada hasil. Jalankan `python experiments.py`.")
+    else:
+        ab = ex["ablation"]
+        st.markdown(
+            f"<p class='catatan'>Setiap skenario memakai tanggal latih, validasi, dan uji yang sama "
+            f"({tgl(ab['test_start'], singkat=True)} s.d. {tgl(ab['test_end'], singkat=True)}, "
+            f"{ab['n_test']} hari uji) serta hyperparameter yang sama. Yang berubah hanya fitur masukan "
+            "(proposal Tabel 3.2).</p>", unsafe_allow_html=True)
+        st.subheader("Skenario M0 sampai M4 pada data uji")
+        rows = [{"Kode": k, "Fitur": r["nama"], "RMSE": r["rmse"], "MAE": r["mae"], "MAPE (%)": r["mape"],
+                 "Arah benar (%)": r["direction_accuracy"],
+                 "p arah (PT)": r["pesaran_timmermann"].get("p_value"),
+                 "p DM vs M0": r.get("dm_vs_m0", {}).get("p_value"),
+                 "p DM vs naif": r["dm_vs_naif"]["p_value"]} for k, r in ab["models"].items()]
+        rows.append({"Kode": "-", "Fitur": NAIF, "RMSE": ab["naif"]["rmse"], "MAE": ab["naif"]["mae"],
+                     "MAPE (%)": ab["naif"]["mape"]})
+        fmt = {c: st.column_config.NumberColumn(format="%.3f") for c in
+               ["MAPE (%)", "p arah (PT)", "p DM vs M0", "p DM vs naif"]}
+        fmt.update({c: st.column_config.NumberColumn(format="%.2f") for c in ["RMSE", "MAE"]})
+        fmt["Arah benar (%)"] = st.column_config.NumberColumn(format="%.1f")
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch", column_config=fmt)
+        st.markdown("<p class='catatan'>p DM vs M0 menguji apakah menambah BI-Rate dan/atau kurs mengubah "
+                    "akurasi dibanding model yang hanya memakai riwayat IHSG (H1 sampai H3). p arah (PT) adalah "
+                    "uji Pesaran-Timmermann: p &lt; 0,05 berarti arah naik/turun lebih tepat daripada tebakan "
+                    "acak.</p>", unsafe_allow_html=True)
+
+        if "walkforward" in ex:
+            st.subheader("Walk-forward 5 lipatan per skenario")
+            wfx = ex["walkforward"]
+            kode = [k for k in wfx["combined"] if k != "naif"]
+            fr = pd.DataFrame([{"Lipatan": f["fold"], "Periode": f"{f['start']} s.d. {f['end']}",
+                                **{k: f[k] for k in kode}, "Naif": f["naif"]} for f in wfx["folds"]])
+            st.dataframe(fr, hide_index=True, width="stretch",
+                         column_config={k: st.column_config.NumberColumn(format="%.2f") for k in [*kode, "Naif"]})
+            g = wfx["combined"]
+            st.markdown(
+                f"<p class='catatan'>Gabungan {wfx['n_test']} hari: " + "; ".join(
+                    f"{k} RMSE {g[k]['rmse']:.2f}" + (f" (p DM vs M0 {p_teks(g[k].get('dm_vs_m0', {}).get('p_value'))})"
+                                                       if k != "M0" else "") for k in kode)
+                + f"; naif {g['naif']['rmse']:.2f}.</p>", unsafe_allow_html=True)
+
+        if "horizon" in ex:
+            st.subheader("Horizon lebih panjang")
+            hz = ex["horizon"]
+            st.dataframe(pd.DataFrame([{
+                "Horizon": h, "Hari uji": r["n_test"], "RMSE M0": r["M0"]["rmse"], "RMSE M3": r["M3"]["rmse"],
+                "RMSE naif": r["naif"]["rmse"], "Arah M3 (%)": r["M3"]["direction_accuracy"],
+                "p DM M3 vs M0": r["M3"].get("dm_vs_m0", {}).get("p_value"),
+                "p DM M3 vs naif": r["M3"]["dm_vs_naif"]["p_value"]} for h, r in hz.items()]),
+                hide_index=True, width="stretch", column_config={
+                    **{c: st.column_config.NumberColumn(format="%.2f") for c in ["RMSE M0", "RMSE M3", "RMSE naif"]},
+                    "Arah M3 (%)": st.column_config.NumberColumn(format="%.1f"),
+                    "p DM M3 vs M0": st.column_config.NumberColumn(format="%.3f"),
+                    "p DM M3 vs naif": st.column_config.NumberColumn(format="%.3f")})
+            st.markdown("<p class='catatan'>Target H+5 dan H+20 adalah perubahan IHSG kumulatif 5 dan 20 hari "
+                        "bursa. Uji DM memakai koreksi untuk galat yang saling tumpang tindih.</p>",
+                        unsafe_allow_html=True)
+
+        if "importance" in ex:
+            st.subheader("Seberapa bergantung model M3 pada tiap variabel")
+            im = ex["importance"]
+            nama = list(im["groups"])
+            val = [im["groups"][k]["rmse_naik_mean"] for k in nama]
+            err = [im["groups"][k]["rmse_naik_std"] for k in nama]
+            fi = go.Figure(go.Bar(x=val, y=nama, orientation="h", marker_color=BLUE,
+                                  error_x=dict(type="data", array=err, color=MUTED)))
+            fi.add_vline(x=0, line_color=SUBTLE, line_width=1)
+            fi.update_layout(**layout_dasar(height=240, hovermode="closest", showlegend=False,
+                                            title=dict(text="Kenaikan RMSE saat variabel diacak (poin IHSG)")))
+            st.plotly_chart(fi, width="stretch")
+            st.markdown(f"<p class='catatan'>Permutation importance, {im['n_perm']} kali pengacakan. Makin besar "
+                        "kenaikannya, makin bergantung model pada variabel itu. Nilai di sekitar nol berarti model "
+                        "praktis tidak memakainya.</p>", unsafe_allow_html=True)
+
+    if eko is not None:
+        st.subheader("Analisis pelengkap: keterkaitan tanpa model LSTM")
+        kt = eko["kontemporer"]
+        gr = eko["var"]["granger"]
+        st.dataframe(pd.DataFrame([
+            {"Uji": "Kurs hari yang sama terhadap IHSG (OLS, HAC)",
+             "Hasil": f"koefisien {kt['ret_kurs']['koef']:+.3f}", "p": kt["ret_kurs"]["p_value"]},
+            {"Uji": "Perubahan BI-Rate hari yang sama terhadap IHSG (per bps)",
+             "Hasil": f"koefisien {kt['d_bi']['koef']:+.4f}", "p": kt["d_bi"]["p_value"]},
+            *[{"Uji": f"Granger: {k.replace('ret_kurs', 'kurs').replace('ret_ihsg', 'IHSG').replace('d_bi', 'BI-Rate')}",
+               "Hasil": f"F = {v['F']:.2f}", "p": v["p_value"]} for k, v in gr.items()],
+        ]), hide_index=True, width="stretch", column_config={"p": st.column_config.NumberColumn(format="%.4f")})
+        st.markdown(f"<p class='catatan'>VAR dengan {eko['var']['lag_aic']} lag (AIC). Granger &ldquo;A &rarr; B&rdquo; "
+                    "menguji apakah nilai A pada hari-hari sebelumnya membantu menjelaskan B; ini bukan bukti "
+                    "sebab-akibat.</p>", unsafe_allow_html=True)
+
+        es = eko["event_study"]["ringkas"]
+        st.markdown("**Event study keputusan RDG Bank Indonesia**")
+        st.dataframe(pd.DataFrame([{
+            "Keputusan": j, "n": r["n"], "CAR [0] (%)": r["[0]"].get("car_mean"),
+            "CAR [-1,+1] (%)": r["[-1,+1]"].get("car_mean"), "p [-1,+1]": r["[-1,+1]"].get("p_value"),
+            "CAR [0,+5] (%)": r["[0,+5]"].get("car_mean"), "p [0,+5]": r["[0,+5]"].get("p_value")}
+            for j, r in es.items()]), hide_index=True, width="stretch", column_config={
+            **{c: st.column_config.NumberColumn(format="%+.3f") for c in
+               ["CAR [0] (%)", "CAR [-1,+1] (%)", "CAR [0,+5] (%)"]},
+            "p [-1,+1]": st.column_config.NumberColumn(format="%.3f"),
+            "p [0,+5]": st.column_config.NumberColumn(format="%.3f")})
+        st.markdown(f"<p class='catatan'>CAR = abnormal return kumulatif IHSG di sekitar tanggal RDG, terhadap "
+                    f"rata-rata return hari bursa ke {eko['event_study']['estimasi'][0]} s.d. "
+                    f"{eko['event_study']['estimasi'][1]}. {eko['event_study']['catatan']}</p>",
+                    unsafe_allow_html=True)
+
+# ===========================================================================
+# TAB 6  REKAM JEJAK (forward test)
+# ===========================================================================
+with tab_log:
+    if not os.path.exists(config.PREDICTION_LOG):
+        st.info("Log belum ada. Jalankan `python daily_update.py` setiap hari bursa, atau pasang jadwal "
+                "otomatis dengan `python daily_update.py --pasang-jadwal 17:30`.")
+    else:
+        lg = pd.read_csv(config.PREDICTION_LOG, parse_dates=["tanggal_h0", "tanggal_h1"])
+        sel = lg.dropna(subset=["aktual_h1"])
+        st.markdown("<p class='catatan'>Setiap prediksi dicatat sebelum IHSG H+1 diketahui, memakai model yang "
+                    "tidak dilatih ulang. Ini uji maju yang benar-benar di luar sampel.</p>",
+                    unsafe_allow_html=True)
+        r1, r2, r3 = st.columns(3)
+        r1.metric("Prediksi tercatat", f"{len(lg)}", help=f"{len(sel)} sudah punya nilai aktual")
+        if len(sel):
+            r2.metric("MAE LSTM vs naif", f"{sel['galat_poin'].abs().mean():,.1f} poin",
+                      f"naif {sel['galat_naif_poin'].abs().mean():,.1f} poin", delta_color="off")
+            r3.metric("Arah benar", f"{sel['arah_benar'].astype(bool).mean() * 100:.0f}%",
+                      f"dari {len(sel)} hari", delta_color="off")
+        st.dataframe(lg.sort_values("tanggal_h0", ascending=False), hide_index=True, width="stretch",
+                     column_config={
+                         "tanggal_h0": st.column_config.DateColumn("H0", format="DD MMM YYYY"),
+                         "tanggal_h1": st.column_config.DateColumn("H+1", format="DD MMM YYYY"),
+                         "ihsg_h0": st.column_config.NumberColumn("IHSG H0", format="%.2f"),
+                         "prediksi_h1": st.column_config.NumberColumn("Prediksi H+1", format="%.2f"),
+                         "aktual_h1": st.column_config.NumberColumn("Aktual H+1", format="%.2f"),
+                         "galat_poin": st.column_config.NumberColumn("Galat (poin)", format="%+.2f"),
+                         "galat_naif_poin": st.column_config.NumberColumn("Galat naif", format="%+.2f"),
+                         "perubahan_pct": st.column_config.NumberColumn("Prediksi Δ%", format="%+.3f"),
+                         "sebaran_pct": st.column_config.NumberColumn("Sebaran ±%", format="%.3f"),
+                     })
+
+# ===========================================================================
+# TAB 7  METODOLOGI
 # ===========================================================================
 with tab_met:
     st.subheader("Fitur dan target")
@@ -530,10 +682,12 @@ with tab_met:
 |---|---|---|
 | `ret_ihsg` | log return IHSG hari t | riwayat Y |
 | `vol_ihsg` | simpangan baku `ret_ihsg` 10 hari | risiko pasar |
-| `ret_kurs` | log return kurs USD/IDR | X2 (positif = rupiah melemah) |
+| `ret_kurs` | log return kurs JISDOR (Bank Indonesia) | X2 (positif = rupiah melemah) |
 | `d_bi` | perubahan BI-Rate, satuan 25 bps | X1, kejutan kebijakan |
 | `bi_rate` | level BI-Rate | X1, rezim suku bunga |
-| `selisih_bi_fed` | BI-Rate dikurangi Fed Funds Rate | daya tarik aset rupiah |
+
+Kelima fitur ini adalah skenario M3 (model inti). Skenario M0 sampai M2 memakai sebagian fitur, dan M4
+menambahkan selisih BI-Rate dengan Fed Funds Rate sebagai pengembangan terpisah (tab Kontribusi variabel).
 
 Target: log return IHSG dari hari t ke t+1, lalu dikembalikan ke level:
 """)
@@ -581,6 +735,7 @@ Target: log return IHSG dari hari t ke t+1, lalu dikembalikan ke level:
     berkas = [("IHSG", config.IHSG_CSV), ("BI-Rate", config.BI_RATE_CSV), ("Kurs USD/IDR", config.KURS_CSV),
               ("Fed Funds Rate", config.FEDFUNDS_CSV), ("Dataset latih", config.DATASET_CSV),
               ("Model LSTM", config.MODEL_PATH), ("Metrik evaluasi", config.METRICS_PATH),
-              ("Walk-forward", config.WALKFORWARD_PATH)]
+              ("Walk-forward", config.WALKFORWARD_PATH), ("Eksperimen M0-M4", config.EXPERIMENTS_PATH),
+              ("Ekonometrika", config.ECONOMETRICS_PATH), ("Log prediksi harian", config.PREDICTION_LOG)]
     st.dataframe(pd.DataFrame([{"Berkas": n, "Path": p, "Ada": "ya" if os.path.exists(p) else "belum"}
                                for n, p in berkas]), hide_index=True, width="stretch")

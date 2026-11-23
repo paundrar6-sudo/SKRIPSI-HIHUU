@@ -33,19 +33,22 @@ torch.set_num_threads(max(1, torch.get_num_threads()))
 # ---------------------------------------------------------------------------
 # Data
 # ---------------------------------------------------------------------------
-def load_frame() -> pd.DataFrame:
-    """dataset_features.csv (semua hari) -> fitur + target (hari terakhir tanpa besok dibuang)."""
+def load_frame(horizon: int = 1) -> pd.DataFrame:
+    """dataset_features.csv (semua hari) -> fitur + target H+horizon."""
     raw = pd.read_csv(config.FEATURES_CSV, parse_dates=["date"])
-    return F.add_target(F.add_features(raw))
+    return F.add_target(F.add_features(raw), horizon)
 
 
 def split_sequences(df: pd.DataFrame, train_end: int, test_end: int, seq_len: int,
-                    val_split: float = config.VAL_SPLIT) -> dict:
+                    val_split: float = config.VAL_SPLIT, columns=None, horizon: int = 1) -> dict:
     """Baris [0, train_end) = latih (bagian akhirnya validasi), [train_end, test_end) = uji.
-    Scaler fitur & skala target di-fit HANYA pada baris latih (tanpa validasi)."""
+    Scaler fitur & skala target di-fit HANYA pada baris latih (tanpa validasi).
+    Untuk horizon > 1 target saling tumpang tindih, jadi horizon-1 baris terakhir
+    sebelum validasi dan sebelum uji dibuang (celah) agar target tidak bocor."""
+    gap = horizon - 1
     val_start = int(train_end * (1 - val_split))
-    scaler = F.FeatureScaler().fit(df.iloc[:val_start])
-    target_std = float(df["target"].iloc[:val_start].std())
+    scaler = F.FeatureScaler(columns).fit(df.iloc[:val_start])
+    target_std = float(df["target"].iloc[:val_start - gap].std())
 
     X_all = F.make_sequences(scaler.transform(df), seq_len)
     end_row = np.arange(seq_len - 1, len(df))            # baris terakhir tiap sequence
@@ -55,8 +58,8 @@ def split_sequences(df: pd.DataFrame, train_end: int, test_end: int, seq_len: in
         m = (end_row >= lo) & (end_row < hi)
         return X_all[m], y_all[m], end_row[m]
 
-    X_tr, y_tr, _ = pick(0, val_start)
-    X_va, y_va, _ = pick(val_start, train_end)
+    X_tr, y_tr, _ = pick(0, val_start - gap)
+    X_va, y_va, _ = pick(val_start, train_end - gap)
     X_te, y_te, rows_te = pick(train_end, test_end)
     return dict(scaler=scaler, target_std=target_std, X_tr=X_tr, y_tr=y_tr, X_va=X_va, y_va=y_va,
                 X_te=X_te, y_te=y_te, rows_te=rows_te, val_start=val_start)
@@ -125,8 +128,9 @@ def predict_ensemble(models, X: np.ndarray) -> np.ndarray:
 # ---------------------------------------------------------------------------
 # Baseline (semua memprediksi log return besok; dilatih hanya pada data latih)
 # ---------------------------------------------------------------------------
-def baselines(df: pd.DataFrame, train_end: int, rows_te: np.ndarray) -> dict:
+def baselines(df: pd.DataFrame, train_end: int, rows_te: np.ndarray, columns=None) -> dict:
     y = df["target"].values
+    cols = list(columns or F.FEATURE_COLUMNS)
     out = {"Naif (besok = hari ini)": np.zeros(len(rows_te)),
            "Rata-rata historis": np.full(len(rows_te), y[:train_end].mean())}
 
@@ -150,7 +154,7 @@ def baselines(df: pd.DataFrame, train_end: int, rows_te: np.ndarray) -> dict:
         print(f"[info] ARIMA dilewati: {e}")
 
     # Regresi linear (OLS) dengan fitur yang sama dengan LSTM, hari terakhir saja
-    Xf = np.column_stack([np.ones(len(df)), df[F.FEATURE_COLUMNS].values])
+    Xf = np.column_stack([np.ones(len(df)), df[cols].values])
     beta, *_ = np.linalg.lstsq(Xf[:train_end], y[:train_end], rcond=None)
     out["Regresi linear"] = Xf[rows_te] @ beta
     return out
@@ -188,3 +192,28 @@ def diebold_mariano(e_model, e_bench, h: int = 1) -> dict:
     dm *= np.sqrt((n + 1 - 2 * h + h * (h - 1) / n) / n)
     p = 2 * stats.t.cdf(-abs(dm), df=n - 1)
     return {"dm_stat": float(dm), "p_value": float(p)}
+
+
+def pesaran_timmermann(pred_ret, actual_ret) -> dict:
+    """Uji Pesaran-Timmermann (1992): apakah arah prediksi lebih tepat daripada
+    tebakan acak yang memiliki proporsi naik/turun yang sama? Satu sisi (lebih baik).
+    Prediksi bernilai 0 (tanpa arah, mis. naif) tidak dapat diuji."""
+    x, y = np.sign(np.asarray(pred_ret)), np.sign(np.asarray(actual_ret))
+    m = (x != 0) & (y != 0)
+    x, y = x[m] > 0, y[m] > 0
+    n = len(x)
+    if n < 10:
+        return {"pt_stat": None, "p_value": None, "n": n}
+    p_hat = np.mean(x == y)
+    py, px = y.mean(), x.mean()
+    p_star = py * px + (1 - py) * (1 - px)
+    v_hat = p_star * (1 - p_star) / n
+    v_star = ((2 * py - 1) ** 2 * px * (1 - px) / n + (2 * px - 1) ** 2 * py * (1 - py) / n
+              + 4 * py * px * (1 - py) * (1 - px) / n ** 2)
+    if v_hat - v_star <= 0:
+        # arah prediksi konstan (selalu naik / selalu turun): tidak ada informasi arah
+        return {"pt_stat": None, "p_value": None, "n": n, "hit_rate": float(p_hat * 100),
+                "expected_random": float(p_star * 100)}
+    pt = (p_hat - p_star) / np.sqrt(v_hat - v_star)
+    return {"pt_stat": float(pt), "p_value": float(1 - stats.norm.cdf(pt)), "n": n,
+            "hit_rate": float(p_hat * 100), "expected_random": float(p_star * 100)}

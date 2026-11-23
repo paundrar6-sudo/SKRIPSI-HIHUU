@@ -53,6 +53,10 @@ METRICS_PATH = os.path.join(MODEL_DIR, "metrics.json")
 TEST_PRED_PATH = os.path.join(MODEL_DIR, "test_predictions.csv")
 WALKFORWARD_PATH = os.path.join(MODEL_DIR, "walkforward.json")
 TUNING_PATH = os.path.join(MODEL_DIR, "tuning.json")
+EXPERIMENTS_PATH = os.path.join(MODEL_DIR, "experiments.json")
+ECONOMETRICS_PATH = os.path.join(MODEL_DIR, "econometrics.json")
+LOG_DIR = "logs"
+PREDICTION_LOG = os.path.join(LOG_DIR, "prediksi_harian.csv")
 
 # --------------------------------------------------------------------------
 # Parameter model LSTM
@@ -60,8 +64,8 @@ TUNING_PATH = os.path.join(MODEL_DIR, "tuning.json")
 # Daftar & definisi fitur ada di features.py (fitur stasioner: return & selisih).
 from features import FEATURE_COLUMNS  # noqa: E402
 
-SEQUENCE_LENGTH = 10       # jumlah hari bursa historis yang dilihat LSTM (dipilih lewat tune.py)
-HIDDEN_SIZE = 16           # dipilih lewat tune.py (loss validasi terendah)
+SEQUENCE_LENGTH = 40       # jumlah hari bursa historis yang dilihat LSTM (dipilih lewat tune.py)
+HIDDEN_SIZE = 32           # dipilih lewat tune.py (loss validasi terendah, fitur M3 + JISDOR)
 NUM_LAYERS = 1
 DROPOUT = 0.2
 LEARNING_RATE = 1e-3

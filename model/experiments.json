@@ -1,0 +1,169 @@
+{
+  "ablation": {
+    "models": {
+      "M0": {
+        "nama": "Baseline: riwayat IHSG",
+        "fitur": [
+          "ret_ihsg",
+          "vol_ihsg"
+        ],
+        "rmse": 116.63052202494893,
+        "mae": 79.38653003934267,
+        "mape": 1.1735445363371828,
+        "direction_accuracy": 46.45390070921986,
+        "r2_oos": -0.008090421826209893,
+        "dm_vs_naif": {
+          "dm_stat": 1.3754932775299427,
+          "p_value": 0.1700740512629323
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -0.6415929706244492,
+          "p_value": 0.7394312508594678,
+          "n": 282,
+          "hit_rate": 46.45390070921986,
+          "expected_random": 47.87234042553191
+        }
+      },
+      "M1": {
+        "nama": "IHSG + BI-Rate",
+        "fitur": [
+          "ret_ihsg",
+          "vol_ihsg",
+          "d_bi",
+          "bi_rate"
+        ],
+        "rmse": 116.58637072870252,
+        "mae": 79.32776407949362,
+        "mape": 1.1726624537903978,
+        "direction_accuracy": 46.45390070921986,
+        "r2_oos": -0.006917954294412221,
+        "dm_vs_naif": {
+          "dm_stat": 1.3408236615575893,
+          "p_value": 0.18106058690596732
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -0.5390496856730682,
+          "p_value": 0.7050737142531696,
+          "n": 282,
+          "hit_rate": 46.45390070921986,
+          "expected_random": 47.32910819375283
+        },
+        "dm_vs_m0": {
+          "dm_stat": -1.0769300365284016,
+          "p_value": 0.28243520796579163
+        }
+      },
+      "M2": {
+        "nama": "IHSG + kurs USD/IDR",
+        "fitur": [
+          "ret_ihsg",
+          "vol_ihsg",
+          "ret_kurs"
+        ],
+        "rmse": 116.66602737186146,
+        "mae": 79.38322320556392,
+        "mape": 1.1735628750805973,
+        "direction_accuracy": 46.45390070921986,
+        "r2_oos": -0.008301286660880924,
+        "dm_vs_naif": {
+          "dm_stat": 1.400115397808434,
+          "p_value": 0.16258189116682178
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -0.5329020514274372,
+          "p_value": 0.7029493074522183,
+          "n": 282,
+          "hit_rate": 46.45390070921986,
+          "expected_random": 47.283838841104576
+        },
+        "dm_vs_m0": {
+          "dm_stat": 0.19271882465677362,
+          "p_value": 0.8473183901387946
+        }
+      },
+      "M3": {
+        "nama": "IHSG + BI-Rate + kurs (model inti)",
+        "fitur": [
+          "ret_ihsg",
+          "vol_ihsg",
+          "ret_kurs",
+          "d_bi",
+          "bi_rate"
+        ],
+        "rmse": 116.51435272210378,
+        "mae": 79.2657545929686,
+        "mape": 1.1719543833389423,
+        "direction_accuracy": 46.45390070921986,
+        "r2_oos": -0.006061890552120364,
+        "dm_vs_naif": {
+          "dm_stat": 1.4999968214853203,
+          "p_value": 0.13473791218636835
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -0.6942404366913678,
+          "p_value": 0.7562342811826461,
+          "n": 282,
+          "hit_rate": 46.45390070921986,
+          "expected_random": 46.87641466727026
+        },
+        "dm_vs_m0": {
+          "dm_stat": -0.8640714481920175,
+          "p_value": 0.3882856106933936
+        }
+      },
+      "M4": {
+        "nama": "M3 + selisih BI-Fed (tambahan, di luar fitur inti)",
+        "fitur": [
+          "ret_ihsg",
+          "vol_ihsg",
+          "ret_kurs",
+          "d_bi",
+          "bi_rate",
+          "selisih_bi_fed"
+        ],
+        "rmse": 116.70400814287258,
+        "mae": 79.36089911415873,
+        "mape": 1.1732160305151274,
+        "direction_accuracy": 46.45390070921986,
+        "r2_oos": -0.009066726887225096,
+        "dm_vs_naif": {
+          "dm_stat": 1.2914261272560044,
+          "p_value": 0.19761723875012757
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -0.6415929706244492,
+          "p_value": 0.7394312508594678,
+          "n": 282,
+          "hit_rate": 46.45390070921986,
+          "expected_random": 47.87234042553191
+        },
+        "dm_vs_m0": {
+          "dm_stat": 0.3538299395814317,
+          "p_value": 0.7237316705649061
+        }
+      }
+    },
+    "naif": {
+      "rmse": 116.15330478847157,
+      "mae": 78.86475994570034,
+      "mape": 1.1658776610190558,
+      "direction_accuracy": null,
+      "r2_oos": 0.0
+    },
+    "n_test": 282,
+    "test_start": "2025-09-22",
+    "test_end": "2026-11-19"
+  },
+  "config": {
+    "sequence_length": 40,
+    "hidden_size": 32,
+    "seeds": [
+      42,
+      7,
+      2024,
+      11,
+      99
+    ],
+    "data_end": "2026-11-19"
+  }
+}

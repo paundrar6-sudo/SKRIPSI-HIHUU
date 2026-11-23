@@ -21,11 +21,29 @@ Fitur per hari bursa t:
     selisih_bi_fed  BI-Rate dikurangi Fed Funds Rate            (daya tarik aset rupiah)
 
 Target: log return IHSG dari hari t ke t+1.
+
+Skenario fitur (proposal Tabel 3.2). Model inti = M3; Fed Funds Rate berada di
+luar fitur inti (Batasan Masalah), jadi hanya dipakai pada M4 sebagai tambahan.
 """
 import numpy as np
 import pandas as pd
 
-FEATURE_COLUMNS = ["ret_ihsg", "vol_ihsg", "ret_kurs", "d_bi", "bi_rate", "selisih_bi_fed"]
+GRUP = {
+    "ihsg": ["ret_ihsg", "vol_ihsg"],
+    "bi": ["d_bi", "bi_rate"],
+    "kurs": ["ret_kurs"],
+    "fed": ["selisih_bi_fed"],
+}
+SKENARIO = {
+    "M0": ("Baseline: riwayat IHSG", GRUP["ihsg"]),
+    "M1": ("IHSG + BI-Rate", GRUP["ihsg"] + GRUP["bi"]),
+    "M2": ("IHSG + kurs USD/IDR", GRUP["ihsg"] + GRUP["kurs"]),
+    "M3": ("IHSG + BI-Rate + kurs (model inti)", GRUP["ihsg"] + GRUP["kurs"] + GRUP["bi"]),
+    "M4": ("M3 + selisih BI-Fed (tambahan, di luar fitur inti)",
+           GRUP["ihsg"] + GRUP["kurs"] + GRUP["bi"] + GRUP["fed"]),
+}
+SKENARIO_INTI = "M3"
+FEATURE_COLUMNS = SKENARIO[SKENARIO_INTI][1]
 VOL_WINDOW = 10
 WARMUP = VOL_WINDOW          # baris awal yang belum punya vol_ihsg lengkap
 BI_STEP = 0.25               # d_bi dinyatakan dalam kelipatan 25 bps, tidak distandarkan
@@ -44,10 +62,11 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
     return out.iloc[WARMUP:].reset_index(drop=True)
 
 
-def add_target(df: pd.DataFrame) -> pd.DataFrame:
-    """Target = log return IHSG hari berikutnya. Baris terakhir (belum ada besok) dibuang."""
+def add_target(df: pd.DataFrame, horizon: int = 1) -> pd.DataFrame:
+    """Target = log return IHSG dari hari t ke t+horizon (default H+1).
+    Baris terakhir yang belum punya nilai masa depan dibuang."""
     out = df.copy()
-    out["ihsg_close_next"] = out["ihsg_close"].shift(-1)
+    out["ihsg_close_next"] = out["ihsg_close"].shift(-horizon)
     out["target"] = np.log(out["ihsg_close_next"] / out["ihsg_close"])
     return out.dropna(subset=["target"]).reset_index(drop=True)
 
@@ -56,14 +75,19 @@ class FeatureScaler:
     """Standardisasi z-score yang di-fit HANYA pada data latih.
     d_bi tidak distandarkan (hampir selalu 0, sesekali +-1 langkah 25 bps)."""
 
+    def __init__(self, columns=None):
+        self.columns = list(columns or FEATURE_COLUMNS)
+
     def fit(self, df: pd.DataFrame):
-        self.mean_ = df[FEATURE_COLUMNS].mean()
-        self.std_ = df[FEATURE_COLUMNS].std().replace(0, 1.0)
-        self.mean_["d_bi"], self.std_["d_bi"] = 0.0, BI_STEP
+        self.mean_ = df[self.columns].mean()
+        self.std_ = df[self.columns].std().replace(0, 1.0)
+        if "d_bi" in self.columns:
+            self.mean_["d_bi"], self.std_["d_bi"] = 0.0, BI_STEP
         return self
 
     def transform(self, df: pd.DataFrame) -> np.ndarray:
-        z = (df[FEATURE_COLUMNS] - self.mean_) / self.std_
+        cols = getattr(self, "columns", list(self.mean_.index))
+        z = (df[cols] - self.mean_) / self.std_
         return z.clip(-CLIP, CLIP).values.astype(np.float32)
 
 
