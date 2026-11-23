@@ -31,6 +31,9 @@ Perintah lain:
 | Granger/VAR, event study RDG | `.\.venv\Scripts\python.exe econometrics.py` |
 | Catat prediksi harian (forward test) | `.\.venv\Scripts\python.exe daily_update.py` |
 | Jadwalkan otomatis Senin-Jumat 17:30 | `.\.venv\Scripts\python.exe daily_update.py --pasang-jadwal 17:30` |
+| Grafik naskah (PNG 300 dpi + PDF) | `.\.venv\Scripts\python.exe figures.py` (hasil di `figures/`, daftar di `figures/DAFTAR_GAMBAR.md`) |
+
+Versi paket di `requirements.txt` dikunci sesuai lingkungan saat hasil skripsi dibuat (Python 3.13).
 
 Kurs kini diambil dari **JISDOR Bank Indonesia** (sesuai proposal Bab III); Yahoo hanya cadangan.
 Data Yahoo sebelumnya memuat 36 hari lonjakan >1,5% yang tidak ada di JISDOR (JISDOR: 2 hari).
