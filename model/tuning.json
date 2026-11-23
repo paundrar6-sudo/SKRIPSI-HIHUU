@@ -1,0 +1,148 @@
+{
+  "best": {
+    "sequence_length": 10,
+    "hidden_size": 16,
+    "val_loss": 3.049842278162638,
+    "val_loss_std": 0.010268807289335031,
+    "epochs": [
+      21,
+      22,
+      21
+    ]
+  },
+  "grid": [
+    {
+      "sequence_length": 10,
+      "hidden_size": 16,
+      "val_loss": 3.049842278162638,
+      "val_loss_std": 0.010268807289335031,
+      "epochs": [
+        21,
+        22,
+        21
+      ]
+    },
+    {
+      "sequence_length": 20,
+      "hidden_size": 16,
+      "val_loss": 3.050070842107137,
+      "val_loss_std": 0.010734386587767505,
+      "epochs": [
+        21,
+        22,
+        21
+      ]
+    },
+    {
+      "sequence_length": 40,
+      "hidden_size": 16,
+      "val_loss": 3.0505405267079673,
+      "val_loss_std": 0.009933527122712282,
+      "epochs": [
+        21,
+        23,
+        21
+      ]
+    },
+    {
+      "sequence_length": 5,
+      "hidden_size": 16,
+      "val_loss": 3.0507795810699463,
+      "val_loss_std": 0.00971147574566883,
+      "epochs": [
+        21,
+        23,
+        21
+      ]
+    },
+    {
+      "sequence_length": 40,
+      "hidden_size": 64,
+      "val_loss": 3.0526391665140786,
+      "val_loss_std": 0.0025569095507042877,
+      "epochs": [
+        21,
+        21,
+        21
+      ]
+    },
+    {
+      "sequence_length": 20,
+      "hidden_size": 64,
+      "val_loss": 3.054603179295858,
+      "val_loss_std": 0.0037858612240500157,
+      "epochs": [
+        21,
+        21,
+        21
+      ]
+    },
+    {
+      "sequence_length": 10,
+      "hidden_size": 64,
+      "val_loss": 3.0556861559549966,
+      "val_loss_std": 0.0063829007305240965,
+      "epochs": [
+        21,
+        21,
+        21
+      ]
+    },
+    {
+      "sequence_length": 5,
+      "hidden_size": 64,
+      "val_loss": 3.056427796681722,
+      "val_loss_std": 0.0033143330747724465,
+      "epochs": [
+        21,
+        21,
+        21
+      ]
+    },
+    {
+      "sequence_length": 20,
+      "hidden_size": 32,
+      "val_loss": 3.0589028199513755,
+      "val_loss_std": 0.0039208910927588094,
+      "epochs": [
+        21,
+        21,
+        22
+      ]
+    },
+    {
+      "sequence_length": 5,
+      "hidden_size": 32,
+      "val_loss": 3.0596781571706138,
+      "val_loss_std": 0.0032925736770565723,
+      "epochs": [
+        21,
+        21,
+        21
+      ]
+    },
+    {
+      "sequence_length": 10,
+      "hidden_size": 32,
+      "val_loss": 3.0597883065541587,
+      "val_loss_std": 0.002174416413548171,
+      "epochs": [
+        21,
+        21,
+        21
+      ]
+    },
+    {
+      "sequence_length": 40,
+      "hidden_size": 32,
+      "val_loss": 3.06249205271403,
+      "val_loss_std": 0.0074248271192642185,
+      "epochs": [
+        21,
+        21,
+        22
+      ]
+    }
+  ],
+  "note": "dipilih dari loss validasi, bukan data uji"
+}

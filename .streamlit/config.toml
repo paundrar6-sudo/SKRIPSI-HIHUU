@@ -1,0 +1,21 @@
+# Tema mengikuti DESIGN.md (IBM Carbon): kanvas putih, teks #161616,
+# satu aksen biru #0f62fe, sudut persegi, IBM Plex Sans.
+[theme]
+base = "light"
+primaryColor = "#0f62fe"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f4f4f4"
+textColor = "#161616"
+borderColor = "#e0e0e0"
+showWidgetBorder = true
+baseRadius = "0px"
+buttonRadius = "0px"
+font = "'IBM Plex Sans':https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&display=swap, sans-serif"
+codeFont = "'IBM Plex Mono':https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap, monospace"
+headingFontWeights = [300, 400, 400, 600, 600, 600]
+chartCategoricalColors = ["#161616", "#0f62fe", "#9f1853", "#8c8c8c", "#198038"]
+
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false

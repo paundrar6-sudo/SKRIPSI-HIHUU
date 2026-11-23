@@ -1,0 +1,99 @@
+{
+  "rmse": 116.62387811202359,
+  "mae": 79.22954448192223,
+  "mape": 1.171602977533762,
+  "direction_accuracy": 47.5177304964539,
+  "r2_oos": -0.007734486994755541,
+  "baseline_rmse": 116.15330478847157,
+  "baseline_mae": 78.86475994570034,
+  "baseline_mape": 1.1658776610190558,
+  "dm_stat_vs_naive": 1.6256044196624282,
+  "dm_p_vs_naive": 0.10515480354450557,
+  "test_up_share": 46.808510638297875,
+  "verdict": "LSTM belum mengungguli baseline naif pada data uji.",
+  "models": {
+    "LSTM": {
+      "rmse": 116.62387811202359,
+      "mae": 79.22954448192223,
+      "mape": 1.171602977533762,
+      "direction_accuracy": 47.5177304964539,
+      "r2_oos": -0.007734486994755541
+    },
+    "Naif (besok = hari ini)": {
+      "rmse": 116.15330478847157,
+      "mae": 78.86475994570034,
+      "mape": 1.1658776610190558,
+      "direction_accuracy": null,
+      "r2_oos": 0.0,
+      "dm_vs_lstm": {
+        "dm_stat": 1.6256044196624282,
+        "p_value": 0.10515480354450557
+      }
+    },
+    "Rata-rata historis": {
+      "rmse": 116.30053937370973,
+      "mae": 78.97951920337925,
+      "mape": 1.167745723760469,
+      "direction_accuracy": 46.808510638297875,
+      "r2_oos": -0.0023358467338183697,
+      "dm_vs_lstm": {
+        "dm_stat": 1.573632199679729,
+        "p_value": 0.1166977131750471
+      }
+    },
+    "ARIMA": {
+      "rmse": 116.74906402999375,
+      "mae": 78.86819783867165,
+      "mape": 1.1660639411761482,
+      "direction_accuracy": 47.87234042553192,
+      "r2_oos": -0.00569982137489955,
+      "dm_vs_lstm": {
+        "dm_stat": 0.13991635453117957,
+        "p_value": 0.8888263131894976
+      }
+    },
+    "Regresi linear": {
+      "rmse": 117.91230282370616,
+      "mae": 80.16951107913903,
+      "mape": 1.1870787075884892,
+      "direction_accuracy": 49.645390070921984,
+      "r2_oos": -0.03115258940799781,
+      "dm_vs_lstm": {
+        "dm_stat": -1.4668278805009571,
+        "p_value": 0.14354113000820576
+      }
+    }
+  },
+  "n_train": 946,
+  "n_val": 169,
+  "n_test": 282,
+  "epochs": 200,
+  "epochs_stopped": [
+    21,
+    22,
+    21,
+    22,
+    22
+  ],
+  "sequence_length": 10,
+  "hidden_size": 16,
+  "num_layers": 1,
+  "seeds": [
+    42,
+    7,
+    2024,
+    11,
+    99
+  ],
+  "features": [
+    "ret_ihsg",
+    "vol_ihsg",
+    "ret_kurs",
+    "d_bi",
+    "bi_rate",
+    "selisih_bi_fed"
+  ],
+  "test_start": "2025-09-23",
+  "test_end": "2026-11-20",
+  "data_end": "2026-11-19"
+}
