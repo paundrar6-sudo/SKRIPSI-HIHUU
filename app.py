@@ -78,24 +78,41 @@ def layout_dasar(**kw) -> dict:
 # ---------------------------------------------------------------------------
 # Data & artefak
 # ---------------------------------------------------------------------------
+def _mtime(path: str) -> float:
+    return os.path.getmtime(path) if os.path.exists(path) else 0.0
+
+
+# Argumen _mtime/versi membuat cache dibaca ulang setiap kali file hasil diperbarui.
 @st.cache_data
-def load_dataset() -> pd.DataFrame:
-    path = config.FEATURES_CSV if os.path.exists(config.FEATURES_CSV) else config.DATASET_CSV
+def _load_dataset(path: str, versi: float) -> pd.DataFrame:
     return pd.read_csv(path, parse_dates=["date"]).sort_values("date").reset_index(drop=True)
 
 
+def load_dataset() -> pd.DataFrame:
+    path = config.FEATURES_CSV if os.path.exists(config.FEATURES_CSV) else config.DATASET_CSV
+    return _load_dataset(path, _mtime(path))
+
+
 @st.cache_resource
-def load_model_artifacts():
+def _load_model_artifacts(versi: float):
     from predict_realtime import load_artifacts
     return load_artifacts()
 
 
+def load_model_artifacts():
+    return _load_model_artifacts(_mtime(config.MODEL_PATH))
+
+
 @st.cache_data
-def load_json(path: str):
+def _load_json(path: str, versi: float):
     if not os.path.exists(path):
         return None
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_json(path: str):
+    return _load_json(path, _mtime(path))
 
 
 BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus",
@@ -536,9 +553,10 @@ with tab_kontrib:
         st.info("Belum ada hasil. Jalankan `python experiments.py`.")
     else:
         ab = ex["ablation"]
+        uji = (m["test_start"], m["test_end"]) if m else (ab["test_start"], ab["test_end"])
         st.markdown(
             f"<p class='catatan'>Setiap skenario memakai tanggal latih, validasi, dan uji yang sama "
-            f"({tgl(ab['test_start'], singkat=True)} s.d. {tgl(ab['test_end'], singkat=True)}, "
+            f"({tgl(uji[0], singkat=True)} s.d. {tgl(uji[1], singkat=True)}, "
             f"{ab['n_test']} hari uji) serta hyperparameter yang sama. Yang berubah hanya fitur masukan "
             "(proposal Tabel 3.2).</p>", unsafe_allow_html=True)
         st.subheader("Skenario M0 sampai M4 pada data uji")
