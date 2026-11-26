@@ -51,8 +51,13 @@ def ambil(nama, modul, fungsi, path):
 
 def baca_log() -> pd.DataFrame:
     if os.path.exists(config.PREDICTION_LOG):
-        return pd.read_csv(config.PREDICTION_LOG, parse_dates=["tanggal_h0", "tanggal_h1"])
-    return pd.DataFrame(columns=KOLOM)
+        log = pd.read_csv(config.PREDICTION_LOG, parse_dates=["tanggal_h0", "tanggal_h1"],
+                          dtype={"status_data": "object", "dibuat_pada": "object"})
+    else:
+        log = pd.DataFrame(columns=KOLOM)
+    # kolom yang masih kosong terbaca sebagai float; arah_benar perlu menampung True/False
+    log["arah_benar"] = log["arah_benar"].astype("object")
+    return log
 
 
 def isi_aktual(log: pd.DataFrame, feat: pd.DataFrame) -> pd.DataFrame:
