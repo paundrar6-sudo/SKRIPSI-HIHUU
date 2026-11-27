@@ -1,0 +1,988 @@
+{
+  "pengaturan": {
+    "porsi_latih": 0.7,
+    "ambang_kuat": 1.0,
+    "ambang_datar": 0.25,
+    "ambang_kurs": 0.25,
+    "min_n": 8,
+    "kelas": [
+      "turun kuat",
+      "turun lemah",
+      "datar",
+      "naik lemah",
+      "naik kuat"
+    ]
+  },
+  "distribusi": {
+    "latih": {
+      "mulai": "2021-01-19",
+      "akhir": "2025-02-12",
+      "n": 985,
+      "std": 0.7883522272336574,
+      "kelas_pct": {
+        "turun kuat": 8.730964467005077,
+        "turun lemah": 25.583756345177665,
+        "datar": 26.903553299492383,
+        "naik lemah": 30.65989847715736,
+        "naik kuat": 8.121827411167512
+      },
+      "rata_naik": 0.5809942286402087,
+      "rata_turun": -0.626886237603786,
+      "pct_naik": 52.487309644670056,
+      "asimetri_t": {
+        "statistic": -1.4053585222883922,
+        "pvalue": 0.1602532949180905
+      }
+    },
+    "ujian": {
+      "mulai": "2025-02-13",
+      "akhir": "2026-11-23",
+      "n": 423,
+      "std": 1.6350904118998881,
+      "kelas_pct": {
+        "turun kuat": 18.203309692671397,
+        "turun lemah": 21.04018912529551,
+        "datar": 16.312056737588655,
+        "naik lemah": 23.87706855791962,
+        "naik kuat": 20.56737588652482
+      },
+      "rata_naik": 1.0319067770210688,
+      "rata_turun": -1.1661266356240392,
+      "pct_naik": 51.06382978723404,
+      "asimetri_t": {
+        "statistic": -1.1306080297976362,
+        "pvalue": 0.25896771045113415
+      }
+    }
+  },
+  "pola": [
+    {
+      "jenis": "kurs",
+      "kondisi": "kurs naik (rupiah melemah)",
+      "H0 latih": {
+        "n": 188,
+        "rata": -0.31441698501498205,
+        "naik_kuat": 4.787234042553192,
+        "turun_kuat": 19.148936170212767,
+        "p": 2.688106250209967e-08,
+        "selisih": -0.3215147078661658
+      },
+      "H0 ujian": {
+        "n": 91,
+        "rata": -0.7458211152924944,
+        "naik_kuat": 15.384615384615385,
+        "turun_kuat": 37.362637362637365,
+        "p": 0.00012114048221774621,
+        "selisih": -0.7020945201680849
+      },
+      "H0 status": "terbukti",
+      "H+1 latih": {
+        "n": 188,
+        "rata": 0.06282191138028875,
+        "naik_kuat": 8.51063829787234,
+        "turun_kuat": 7.9787234042553195,
+        "p": 0.3035692772633035,
+        "selisih": 0.055136190055056045
+      },
+      "H+1 ujian": {
+        "n": 91,
+        "rata": -0.04611006753760351,
+        "naik_kuat": 26.373626373626376,
+        "turun_kuat": 23.076923076923077,
+        "p": 0.9805053700053923,
+        "selisih": -0.004695772123272643
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs",
+      "kondisi": "kurs tetap",
+      "H0 latih": {
+        "n": 636,
+        "rata": 0.023925668539920824,
+        "naik_kuat": 7.0754716981132075,
+        "turun_kuat": 7.0754716981132075,
+        "p": 0.3975219392597075,
+        "selisih": 0.016827945688737037
+      },
+      "H0 ujian": {
+        "n": 265,
+        "rata": 0.026049283602387587,
+        "naik_kuat": 17.358490566037734,
+        "turun_kuat": 13.962264150943396,
+        "p": 0.30261517441047525,
+        "selisih": 0.06977587872679704
+      },
+      "H0 status": "tidak ada pola di latih",
+      "H+1 latih": {
+        "n": 636,
+        "rata": 0.004151643920055974,
+        "naik_kuat": 8.80503144654088,
+        "turun_kuat": 8.80503144654088,
+        "p": 0.8477401520900216,
+        "selisih": -0.0035340774051767334
+      },
+      "H+1 ujian": {
+        "n": 265,
+        "rata": -0.08003339617257706,
+        "naik_kuat": 20.0,
+        "turun_kuat": 16.9811320754717,
+        "p": 0.5505000003104662,
+        "selisih": -0.03861910075824619
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs",
+      "kondisi": "kurs turun (rupiah menguat)",
+      "H0 latih": {
+        "n": 161,
+        "rata": 0.31605543478163345,
+        "naik_kuat": 16.149068322981368,
+        "turun_kuat": 3.1055900621118013,
+        "p": 2.483490232741615e-07,
+        "selisih": 0.3089577119304497
+      },
+      "H0 ujian": {
+        "n": 67,
+        "rata": 0.6338852477516279,
+        "naik_kuat": 40.298507462686565,
+        "turun_kuat": 8.955223880597014,
+        "p": 0.0007519622716342748,
+        "selisih": 0.6776118428760374
+      },
+      "H0 status": "terbukti",
+      "H+1 latih": {
+        "n": 161,
+        "rata": -0.04273620725028369,
+        "naik_kuat": 4.968944099378882,
+        "turun_kuat": 8.695652173913043,
+        "p": 0.3298207531847663,
+        "selisih": -0.050421928575516396
+      },
+      "H+1 ujian": {
+        "n": 67,
+        "rata": 0.11771073390138616,
+        "naik_kuat": 14.925373134328357,
+        "turun_kuat": 16.417910447761194,
+        "p": 0.2694902318753278,
+        "selisih": 0.15912502931571704
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "siklus",
+      "kondisi": "siklus pengetatan",
+      "H0 latih": {
+        "n": 499,
+        "rata": 0.021753725921682798,
+        "naik_kuat": 6.012024048096192,
+        "turun_kuat": 6.012024048096192,
+        "p": 0.5559961872042412,
+        "selisih": 0.01465600307049901
+      },
+      "H0 ujian": {
+        "n": 128,
+        "rata": -0.13547716408183208,
+        "naik_kuat": 26.5625,
+        "turun_kuat": 25.0,
+        "p": 0.5058895888876127,
+        "selisih": -0.09175056895742263
+      },
+      "H0 status": "tidak ada pola di latih",
+      "H+1 latih": {
+        "n": 499,
+        "rata": 0.02012745561127043,
+        "naik_kuat": 6.012024048096192,
+        "turun_kuat": 6.012024048096192,
+        "p": 0.6169377417765568,
+        "selisih": 0.01244173428603772
+      },
+      "H+1 ujian": {
+        "n": 128,
+        "rata": -0.12522335849829358,
+        "naik_kuat": 26.5625,
+        "turun_kuat": 25.0,
+        "p": 0.5433645335600042,
+        "selisih": -0.08380906308396271
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "siklus",
+      "kondisi": "siklus pelonggaran",
+      "H0 latih": {
+        "n": 465,
+        "rata": -0.0031709581620811183,
+        "naik_kuat": 10.32258064516129,
+        "turun_kuat": 10.75268817204301,
+        "p": 0.7021602117679512,
+        "selisih": -0.010268681013264907
+      },
+      "H0 ujian": {
+        "n": 295,
+        "rata": -0.003916178763222662,
+        "naik_kuat": 17.966101694915253,
+        "turun_kuat": 15.254237288135593,
+        "p": 0.5058895888876127,
+        "selisih": 0.03981041636118678
+      },
+      "H0 status": "tidak ada pola di latih",
+      "H+1 latih": {
+        "n": 465,
+        "rata": -0.0015212193009199585,
+        "naik_kuat": 10.32258064516129,
+        "turun_kuat": 10.75268817204301,
+        "p": 0.731562777348846,
+        "selisih": -0.009206940626152666
+      },
+      "H+1 ujian": {
+        "n": 295,
+        "rata": -0.005049684991458904,
+        "naik_kuat": 17.966101694915253,
+        "turun_kuat": 15.254237288135593,
+        "p": 0.5433645335600042,
+        "selisih": 0.03636461042287196
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs x siklus",
+      "kondisi": "kurs naik (rupiah melemah) & siklus pengetatan",
+      "H0 latih": {
+        "n": 107,
+        "rata": -0.3273801180897171,
+        "naik_kuat": 2.803738317757009,
+        "turun_kuat": 16.822429906542055,
+        "p": 1.144662964872274e-06,
+        "selisih": -0.3344778409409009
+      },
+      "H0 ujian": {
+        "n": 29,
+        "rata": -1.0100476053461491,
+        "naik_kuat": 20.689655172413794,
+        "turun_kuat": 48.275862068965516,
+        "p": 0.04695508395349293,
+        "selisih": -0.9663210102217397
+      },
+      "H0 status": "terbukti",
+      "H+1 latih": {
+        "n": 107,
+        "rata": 0.1598323678158361,
+        "naik_kuat": 7.476635514018691,
+        "turun_kuat": 3.7383177570093453,
+        "p": 0.014989268421328574,
+        "selisih": 0.1521466464906034
+      },
+      "H+1 ujian": {
+        "n": 29,
+        "rata": -0.43035144996543123,
+        "naik_kuat": 20.689655172413794,
+        "turun_kuat": 27.586206896551722,
+        "p": 0.4718722157101226,
+        "selisih": -0.38893715455110034
+      },
+      "H+1 status": "gagal (arah berbalik)"
+    },
+    {
+      "jenis": "kurs x siklus",
+      "kondisi": "kurs naik (rupiah melemah) & siklus pelonggaran",
+      "H0 latih": {
+        "n": 80,
+        "rata": -0.28816255518845924,
+        "naik_kuat": 7.5,
+        "turun_kuat": 21.25,
+        "p": 0.009836250971133133,
+        "selisih": -0.295260278039643
+      },
+      "H0 ujian": {
+        "n": 62,
+        "rata": -0.622231305428688,
+        "naik_kuat": 12.903225806451612,
+        "turun_kuat": 32.25806451612903,
+        "p": 0.003126010331035211,
+        "selisih": -0.5785047103042785
+      },
+      "H0 status": "terbukti",
+      "H+1 latih": {
+        "n": 80,
+        "rata": -0.060640703682783716,
+        "naik_kuat": 10.0,
+        "turun_kuat": 13.750000000000002,
+        "p": 0.516173105953749,
+        "selisih": -0.06832642500801642
+      },
+      "H+1 ujian": {
+        "n": 62,
+        "rata": 0.13361574037218696,
+        "naik_kuat": 29.03225806451613,
+        "turun_kuat": 20.967741935483872,
+        "p": 0.37141466777115795,
+        "selisih": 0.17503003578651782
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs x siklus",
+      "kondisi": "kurs tetap & siklus pengetatan",
+      "H0 latih": {
+        "n": 303,
+        "rata": 0.06963013137149354,
+        "naik_kuat": 5.6105610561056105,
+        "turun_kuat": 2.9702970297029703,
+        "p": 0.059890370553561806,
+        "selisih": 0.06253240852030975
+      },
+      "H0 ujian": {
+        "n": 78,
+        "rata": -0.04116759096362992,
+        "naik_kuat": 21.794871794871796,
+        "turun_kuat": 20.51282051282051,
+        "p": 0.9883261253050254,
+        "selisih": 0.0025590041607795252
+      },
+      "H0 status": "tidak ada pola di latih",
+      "H+1 latih": {
+        "n": 303,
+        "rata": -0.04217863318139049,
+        "naik_kuat": 5.6105610561056105,
+        "turun_kuat": 7.590759075907591,
+        "p": 0.15721718632825737,
+        "selisih": -0.0498643545066232
+      },
+      "H+1 ujian": {
+        "n": 78,
+        "rata": -0.013038369249335503,
+        "naik_kuat": 33.33333333333333,
+        "turun_kuat": 24.358974358974358,
+        "p": 0.8680427970797765,
+        "selisih": 0.02837592616499536
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs x siklus",
+      "kondisi": "kurs tetap & siklus pelonggaran",
+      "H0 latih": {
+        "n": 317,
+        "rata": 0.003248100933407248,
+        "naik_kuat": 8.517350157728707,
+        "turun_kuat": 9.779179810725552,
+        "p": 0.9155620307915533,
+        "selisih": -0.00384962191777654
+      },
+      "H0 ujian": {
+        "n": 187,
+        "rata": 0.05408626871548578,
+        "naik_kuat": 15.508021390374333,
+        "turun_kuat": 11.229946524064172,
+        "p": 0.2486729534703099,
+        "selisih": 0.09781286383989524
+      },
+      "H0 status": "tidak ada pola di latih",
+      "H+1 latih": {
+        "n": 317,
+        "rata": 0.048081093997276246,
+        "naik_kuat": 11.67192429022082,
+        "turun_kuat": 9.14826498422713,
+        "p": 0.28584516947136573,
+        "selisih": 0.04039537267204354
+      },
+      "H+1 ujian": {
+        "n": 187,
+        "rata": -0.10797784590526602,
+        "naik_kuat": 14.43850267379679,
+        "turun_kuat": 13.903743315508022,
+        "p": 0.4453566943699091,
+        "selisih": -0.06656355049093515
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs x siklus",
+      "kondisi": "kurs turun (rupiah menguat) & siklus pengetatan",
+      "H0 latih": {
+        "n": 89,
+        "rata": 0.27850395578603276,
+        "naik_kuat": 11.235955056179774,
+        "turun_kuat": 3.3707865168539324,
+        "p": 0.0003390338008161758,
+        "selisih": 0.271406232934849
+      },
+      "H0 ujian": {
+        "n": 21,
+        "rata": 0.7219702689393787,
+        "naik_kuat": 52.38095238095239,
+        "turun_kuat": 9.523809523809524,
+        "p": 0.038092405919727616,
+        "selisih": 0.7656968640637881
+      },
+      "H0 status": "terbukti",
+      "H+1 latih": {
+        "n": 89,
+        "rata": 0.0642883466032674,
+        "naik_kuat": 5.617977528089887,
+        "turun_kuat": 3.3707865168539324,
+        "p": 0.3919171911591748,
+        "selisih": 0.056602625278034696
+      },
+      "H+1 ujian": {
+        "n": 21,
+        "rata": -0.1205430970159957,
+        "naik_kuat": 9.523809523809524,
+        "turun_kuat": 23.809523809523807,
+        "p": 0.7913428993090706,
+        "selisih": -0.07912880160166484
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "kurs x siklus",
+      "kondisi": "kurs turun (rupiah menguat) & siklus pelonggaran",
+      "H0 latih": {
+        "n": 68,
+        "rata": 0.3021891304973371,
+        "naik_kuat": 22.058823529411764,
+        "turun_kuat": 2.941176470588235,
+        "p": 0.004037071237447186,
+        "selisih": 0.2950914076461533
+      },
+      "H0 ujian": {
+        "n": 46,
+        "rata": 0.5936725206876549,
+        "naik_kuat": 34.78260869565217,
+        "turun_kuat": 8.695652173913043,
+        "p": 0.01407334437974028,
+        "selisih": 0.6373991158120643
+      },
+      "H0 status": "terbukti",
+      "H+1 latih": {
+        "n": 68,
+        "rata": -0.16320319819767132,
+        "naik_kuat": 4.411764705882353,
+        "turun_kuat": 14.705882352941178,
+        "p": 0.060097822923563464,
+        "selisih": -0.17088891952290403
+      },
+      "H+1 ujian": {
+        "n": 46,
+        "rata": 0.2264787871462779,
+        "naik_kuat": 17.391304347826086,
+        "turun_kuat": 13.043478260869565,
+        "p": 0.10245859244254378,
+        "selisih": 0.26789308256060873
+      },
+      "H+1 status": "tidak ada pola di latih"
+    },
+    {
+      "jenis": "hari RDG",
+      "kondisi": "Hari RDG: BI-Rate naik",
+      "H0 latih": {
+        "n": 8,
+        "rata": 0.4959238192776933,
+        "naik_kuat": 12.5,
+        "turun_kuat": 12.5,
+        "p": 0.14057661247420844,
+        "selisih": 0.48882609642650954
+      },
+      "H0 ujian": {
+        "n": 4,
+        "rata": 1.2257015357169105,
+        "naik_kuat": 25.0,
+        "turun_kuat": 25.0,
+        "p": null,
+        "selisih": 1.26942813084132
+      },
+      "H0 status": "sampel kurang",
+      "H+1 latih": {
+        "n": 8,
+        "rata": 0.1463250431095409,
+        "naik_kuat": 0.0,
+        "turun_kuat": 0.0,
+        "p": 0.4573040485020568,
+        "selisih": 0.13863932178430818
+      },
+      "H+1 ujian": {
+        "n": 4,
+        "rata": -0.44362730224919716,
+        "naik_kuat": 25.0,
+        "turun_kuat": 50.0,
+        "p": null,
+        "selisih": -0.40221300683486627
+      },
+      "H+1 status": "sampel kurang"
+    },
+    {
+      "jenis": "hari RDG",
+      "kondisi": "Hari RDG: BI-Rate turun",
+      "H0 latih": {
+        "n": 3,
+        "rata": 0.4308531429920824,
+        "naik_kuat": 33.33333333333333,
+        "turun_kuat": 0.0,
+        "p": null,
+        "selisih": 0.4237554201408986
+      },
+      "H0 ujian": {
+        "n": 4,
+        "rata": 0.8182587825312453,
+        "naik_kuat": 25.0,
+        "turun_kuat": 0.0,
+        "p": null,
+        "selisih": 0.8619853776556547
+      },
+      "H0 status": "sampel kurang",
+      "H+1 latih": {
+        "n": 3,
+        "rata": 0.6263107238833499,
+        "naik_kuat": 0.0,
+        "turun_kuat": 0.0,
+        "p": null,
+        "selisih": 0.6186250025581171
+      },
+      "H+1 ujian": {
+        "n": 4,
+        "rata": 0.19675135757578344,
+        "naik_kuat": 25.0,
+        "turun_kuat": 0.0,
+        "p": null,
+        "selisih": 0.2381656529901143
+      },
+      "H+1 status": "sampel kurang"
+    }
+  ],
+  "lanjutan": {
+    "latih": {
+      "transisi_pct": {
+        "turun kuat": {
+          "turun kuat": 15.12,
+          "turun lemah": 19.77,
+          "datar": 17.44,
+          "naik lemah": 33.72,
+          "naik kuat": 13.95
+        },
+        "turun lemah": {
+          "turun kuat": 7.94,
+          "turun lemah": 23.41,
+          "datar": 26.19,
+          "naik lemah": 32.94,
+          "naik kuat": 9.52
+        },
+        "datar": {
+          "turun kuat": 8.3,
+          "turun lemah": 24.53,
+          "datar": 26.42,
+          "naik lemah": 35.09,
+          "naik kuat": 5.66
+        },
+        "naik lemah": {
+          "turun kuat": 7.95,
+          "turun lemah": 28.15,
+          "datar": 30.79,
+          "naik lemah": 25.83,
+          "naik kuat": 7.28
+        },
+        "naik kuat": {
+          "turun kuat": 7.5,
+          "turun lemah": 33.75,
+          "datar": 26.25,
+          "naik lemah": 23.75,
+          "naik kuat": 8.75
+        }
+      },
+      "per_kelas": {
+        "turun kuat": {
+          "n": 86,
+          "rata_besok": 0.056249166693285065,
+          "p": 0.6418207577612896,
+          "lanjut_searah": 43.02325581395349
+        },
+        "turun lemah": {
+          "n": 252,
+          "rata_besok": 0.0811153684318824,
+          "p": 0.08541786269554538,
+          "lanjut_searah": 43.25396825396825
+        },
+        "datar": {
+          "n": 265,
+          "rata_besok": -0.005617771823594831,
+          "p": 0.7413276185350963,
+          "lanjut_searah": null
+        },
+        "naik lemah": {
+          "n": 302,
+          "rata_besok": -0.04333372669052714,
+          "p": 0.1678179391087777,
+          "lanjut_searah": 48.675496688741724
+        },
+        "naik kuat": {
+          "n": 80,
+          "rata_besok": -0.03915713351638553,
+          "p": 0.5494283945352717,
+          "lanjut_searah": 42.5
+        }
+      }
+    },
+    "ujian": {
+      "transisi_pct": {
+        "turun kuat": {
+          "turun kuat": 24.68,
+          "turun lemah": 22.08,
+          "datar": 11.69,
+          "naik lemah": 12.99,
+          "naik kuat": 28.57
+        },
+        "turun lemah": {
+          "turun kuat": 23.6,
+          "turun lemah": 23.6,
+          "datar": 11.24,
+          "naik lemah": 26.97,
+          "naik kuat": 14.61
+        },
+        "datar": {
+          "turun kuat": 14.49,
+          "turun lemah": 21.74,
+          "datar": 15.94,
+          "naik lemah": 21.74,
+          "naik kuat": 26.09
+        },
+        "naik lemah": {
+          "turun kuat": 11.88,
+          "turun lemah": 16.83,
+          "datar": 25.74,
+          "naik lemah": 28.71,
+          "naik kuat": 16.83
+        },
+        "naik kuat": {
+          "turun kuat": 17.24,
+          "turun lemah": 20.69,
+          "datar": 14.94,
+          "naik lemah": 27.59,
+          "naik kuat": 19.54
+        }
+      },
+      "per_kelas": {
+        "turun kuat": {
+          "n": 77,
+          "rata_besok": -0.18453537888057542,
+          "p": 0.5355993813168274,
+          "lanjut_searah": 54.54545454545454
+        },
+        "turun lemah": {
+          "n": 89,
+          "rata_besok": -0.20080017409729475,
+          "p": 0.2768365168066641,
+          "lanjut_searah": 56.17977528089888
+        },
+        "datar": {
+          "n": 69,
+          "rata_besok": 0.06506414022902524,
+          "p": 0.504020282939379,
+          "lanjut_searah": null
+        },
+        "naik lemah": {
+          "n": 101,
+          "rata_besok": 0.07030182565202,
+          "p": 0.37601265494886904,
+          "lanjut_searah": 58.415841584158414
+        },
+        "naik kuat": {
+          "n": 87,
+          "rata_besok": 0.034164168293618645,
+          "p": 0.5940336137918861,
+          "lanjut_searah": 52.87356321839081
+        }
+      }
+    }
+  },
+  "lstm": {
+    "hyperparameter": {
+      "sequence_length": 40,
+      "hidden_size": 16,
+      "grid": [
+        {
+          "sequence_length": 40,
+          "hidden_size": 16,
+          "val_loss": 1.3983385960261028
+        },
+        {
+          "sequence_length": 10,
+          "hidden_size": 16,
+          "val_loss": 1.399410565694173
+        },
+        {
+          "sequence_length": 20,
+          "hidden_size": 16,
+          "val_loss": 1.3996790250142415
+        },
+        {
+          "sequence_length": 10,
+          "hidden_size": 32,
+          "val_loss": 1.4009430805842082
+        },
+        {
+          "sequence_length": 40,
+          "hidden_size": 32,
+          "val_loss": 1.4014264345169067
+        },
+        {
+          "sequence_length": 20,
+          "hidden_size": 32,
+          "val_loss": 1.4027964274088542
+        }
+      ]
+    },
+    "n_latih": 798,
+    "n_validasi": 148,
+    "n_ujian": 423,
+    "metrik": {
+      "LSTM M3": {
+        "rmse": 109.52820750146142,
+        "mae": 75.30669123083099,
+        "mape": 1.1081284836083347,
+        "direction_accuracy": 46.335697399527184,
+        "r2_oos": -0.005028008707275156,
+        "dm_vs_naif": {
+          "dm_stat": 1.3271125678750173,
+          "p_value": 0.18518902077736013
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -2.004906068440492,
+          "p_value": 0.9775134550779203,
+          "n": 423,
+          "hit_rate": 46.335697399527184,
+          "expected_random": 50.61784283151417
+        },
+        "dm_vs_m0": {
+          "dm_stat": -1.2917337790731,
+          "p_value": 0.1971563591748588
+        }
+      },
+      "LSTM M0": {
+        "rmse": 109.63700862986293,
+        "mae": 75.44315891954051,
+        "mape": 1.1101898472136889,
+        "direction_accuracy": 47.28132387706856,
+        "r2_oos": -0.007082960123388604,
+        "dm_vs_naif": {
+          "dm_stat": 1.6038483354705422,
+          "p_value": 0.10949561180888077
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -1.5771914017762056,
+          "p_value": 0.9426242545919575,
+          "n": 423,
+          "hit_rate": 47.28132387706856,
+          "expected_random": 50.6301382112458
+        }
+      },
+      "Naif (besok = hari ini)": {
+        "rmse": 109.23278960009566,
+        "mae": 75.08968098958331,
+        "mape": 1.1051093443377558,
+        "direction_accuracy": null,
+        "r2_oos": 0.0
+      },
+      "Rata-rata historis": {
+        "rmse": 109.2438460625502,
+        "mae": 75.08246851040482,
+        "mape": 1.105049673385724,
+        "direction_accuracy": 51.30023640661938,
+        "r2_oos": -0.00019195380284209307,
+        "dm_vs_naif": {
+          "dm_stat": 0.7119720484324168,
+          "p_value": 0.47687549502272203
+        },
+        "pesaran_timmermann": {
+          "pt_stat": null,
+          "p_value": null,
+          "n": 423,
+          "hit_rate": 51.30023640661938,
+          "expected_random": 51.30023640661938
+        }
+      },
+      "ARIMA": {
+        "rmse": 109.52909573830654,
+        "mae": 75.53189298851744,
+        "mape": 1.1122766586495711,
+        "direction_accuracy": 46.09929078014184,
+        "r2_oos": -0.006917029373919359,
+        "dm_vs_naif": {
+          "dm_stat": 1.1658746222650052,
+          "p_value": 0.24432364613819155
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -1.621436149060197,
+          "p_value": 0.9475379333283531,
+          "n": 423,
+          "hit_rate": 46.09929078014184,
+          "expected_random": 50.03381229426197
+        }
+      },
+      "Regresi linear": {
+        "rmse": 110.75937206536074,
+        "mae": 76.27141073893675,
+        "mape": 1.1244667502097647,
+        "direction_accuracy": 46.335697399527184,
+        "r2_oos": -0.030345498349938493,
+        "dm_vs_naif": {
+          "dm_stat": 1.4449484306995204,
+          "p_value": 0.14921448720919503
+        },
+        "pesaran_timmermann": {
+          "pt_stat": -2.098624981602147,
+          "p_value": 0.9820750138018542,
+          "n": 423,
+          "hit_rate": 46.335697399527184,
+          "expected_random": 50.6793197301723
+        }
+      }
+    },
+    "kelas_prediksi_pct": {
+      "turun kuat": 0.0,
+      "turun lemah": 0.0,
+      "datar": 100.0,
+      "naik lemah": 0.0,
+      "naik kuat": 0.0
+    },
+    "konfusi": {
+      "turun kuat": {
+        "turun kuat": 0,
+        "turun lemah": 0,
+        "datar": 77,
+        "naik lemah": 0,
+        "naik kuat": 0
+      },
+      "turun lemah": {
+        "turun kuat": 0,
+        "turun lemah": 0,
+        "datar": 88,
+        "naik lemah": 0,
+        "naik kuat": 0
+      },
+      "datar": {
+        "turun kuat": 0,
+        "turun lemah": 0,
+        "datar": 69,
+        "naik lemah": 0,
+        "naik kuat": 0
+      },
+      "naik lemah": {
+        "turun kuat": 0,
+        "turun lemah": 0,
+        "datar": 102,
+        "naik lemah": 0,
+        "naik kuat": 0
+      },
+      "naik kuat": {
+        "turun kuat": 0,
+        "turun lemah": 0,
+        "datar": 87,
+        "naik lemah": 0,
+        "naik kuat": 0
+      }
+    },
+    "kuintil": [
+      {
+        "kuintil": 1,
+        "pred_rata": -0.0178531426936388,
+        "aktual_rata": 0.1291661509271405,
+        "naik_kuat": 12.941176470588237,
+        "turun_kuat": 7.0588235294117645,
+        "n": 85
+      },
+      {
+        "kuintil": 2,
+        "pred_rata": 0.003719244385138154,
+        "aktual_rata": -0.059489388519795426,
+        "naik_kuat": 10.714285714285714,
+        "turun_kuat": 14.285714285714285,
+        "n": 84
+      },
+      {
+        "kuintil": 3,
+        "pred_rata": 0.027476411312818527,
+        "aktual_rata": -0.14715178117298808,
+        "naik_kuat": 22.35294117647059,
+        "turun_kuat": 20.0,
+        "n": 85
+      },
+      {
+        "kuintil": 4,
+        "pred_rata": 0.06675837934017181,
+        "aktual_rata": -0.03197375511893917,
+        "naik_kuat": 26.190476190476193,
+        "turun_kuat": 26.190476190476193,
+        "n": 84
+      },
+      {
+        "kuintil": 5,
+        "pred_rata": 0.09197881817817688,
+        "aktual_rata": -0.0977242861613083,
+        "naik_kuat": 30.58823529411765,
+        "turun_kuat": 23.52941176470588,
+        "n": 85
+      }
+    ],
+    "spearman": {
+      "rho": -0.04603095630842914,
+      "p_value": 0.34495698053745677
+    },
+    "arah_hari_kuat": {
+      "n": 164,
+      "benar_pct": 49.390243902439025
+    },
+    "per_kondisi": [
+      {
+        "kurs": "naik",
+        "siklus": "pengetatan",
+        "n": 29,
+        "pred_rata": 0.050350017845630646,
+        "aktual_rata": -0.43035144996543123,
+        "arah_benar": 44.827586206896555
+      },
+      {
+        "kurs": "naik",
+        "siklus": "pelonggaran",
+        "n": 62,
+        "pred_rata": 0.034552332013845444,
+        "aktual_rata": 0.13361574037218696,
+        "arah_benar": 48.38709677419355
+      },
+      {
+        "kurs": "tetap",
+        "siklus": "pengetatan",
+        "n": 78,
+        "pred_rata": 0.05537876859307289,
+        "aktual_rata": -0.013038369249335503,
+        "arah_benar": 52.56410256410257
+      },
+      {
+        "kurs": "tetap",
+        "siklus": "pelonggaran",
+        "n": 187,
+        "pred_rata": 0.025426242500543594,
+        "aktual_rata": -0.10797784590526602,
+        "arah_benar": 44.38502673796791
+      },
+      {
+        "kurs": "turun",
+        "siklus": "pengetatan",
+        "n": 21,
+        "pred_rata": 0.041605252772569656,
+        "aktual_rata": -0.1205430970159957,
+        "arah_benar": 42.857142857142854
+      },
+      {
+        "kurs": "turun",
+        "siklus": "pelonggaran",
+        "n": 46,
+        "pred_rata": 0.02186829037964344,
+        "aktual_rata": 0.2264787871462779,
+        "arah_benar": 43.47826086956522
+      }
+    ],
+    "pred_std_pct": 0.04113858938217163,
+    "aktual_std_pct": 1.635156968656675
+  }
+}

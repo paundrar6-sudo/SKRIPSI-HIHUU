@@ -128,6 +128,11 @@ def tgl(d, hari=False, singkat=False) -> str:
     return f"{HARI[d.weekday()]}, {s}" if hari else s
 
 
+def angka_id(x, nd=2) -> str:
+    """Angka format Indonesia: koma desimal, titik ribuan (mis. 1.234,56)."""
+    return f"{x:,.{nd}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+
+
 def fmt_pct(x, nd=2):
     return "-" if x is None or not np.isfinite(x) else f"{x:+.{nd}f}%"
 
@@ -146,6 +151,7 @@ last, prev = df.iloc[-1], df.iloc[-2]
 m = load_json(config.METRICS_PATH)
 wf = load_json(config.WALKFORWARD_PATH)
 ex = load_json(config.EXPERIMENTS_PATH)
+sim = load_json(os.path.join(config.MODEL_DIR, "simulasi.json"))
 eko = load_json(config.ECONOMETRICS_PATH)
 model_siap = os.path.exists(config.MODEL_PATH) and m is not None
 NAIF = "Naif (besok = hari ini)"
@@ -159,9 +165,9 @@ st.markdown(f"<p class='eyebrow'>Skripsi · Prediksi IHSG hari bursa berikutnya<
             f"{len(df):,} hari bursa sejak {BULAN[df['date'].min().month - 1]} {df['date'].min().year}</p>",
             unsafe_allow_html=True)
 
-tab_pred, tab_data, tab_xy, tab_eval, tab_kontrib, tab_log, tab_met = st.tabs(
+tab_pred, tab_data, tab_xy, tab_eval, tab_kontrib, tab_sim, tab_log, tab_met = st.tabs(
     ["Prediksi H+1", "Data pasar", "Hubungan X dan Y", "Evaluasi model", "Kontribusi variabel",
-     "Rekam jejak", "Metodologi"])
+     "Simulasi 70/30", "Rekam jejak", "Metodologi"])
 
 # ===========================================================================
 # TAB 1  PREDIKSI H+1
@@ -658,7 +664,160 @@ with tab_kontrib:
                     unsafe_allow_html=True)
 
 # ===========================================================================
-# TAB 6  REKAM JEJAK (forward test)
+# TAB 6  SIMULASI 70/30: kekuatan naik/turun IHSG menurut kondisi BI-Rate & kurs
+# ===========================================================================
+KELAS_WARNA = {"turun kuat": "#a2191f", "turun lemah": "#ff8389", "datar": "#c6c6c6",
+               "naik lemah": "#6fdc8c", "naik kuat": "#0e6027"}
+STATUS_TEKS = {"terbukti": "Terbukti di ujian", "arah sama, ujian tidak signifikan": "Arah sama, belum signifikan",
+               "gagal (arah berbalik)": "Gagal: berbalik di ujian", "tidak ada pola di latih": "Tidak ada pola",
+               "sampel kurang": "Sampel terlalu sedikit"}
+
+with tab_sim:
+    if sim is None:
+        st.info("Belum ada hasil. Jalankan `python simulasi.py`.")
+    else:
+        ds, ps = sim["distribusi"], sim["pengaturan"]
+        lt, uj = ds["latih"], ds["ujian"]
+        st.markdown(
+            f"<p class='catatan'>Data dibagi menurut waktu: <b>70% latih</b> ({tgl(lt['mulai'], singkat=True)} s.d. "
+            f"{tgl(lt['akhir'], singkat=True)}, {lt['n']} hari) untuk menemukan pola dan melatih LSTM, dan "
+            f"<b>30% ujian</b> ({tgl(uj['mulai'], singkat=True)} s.d. {tgl(uj['akhir'], singkat=True)}, {uj['n']} hari) "
+            "yang tidak disentuh sampai penilaian. Sebuah pola dianggap <b>terbukti</b> bila signifikan di data latih "
+            "dan muncul lagi dengan arah sama serta signifikan di data ujian.</p>", unsafe_allow_html=True)
+
+        st.subheader("1. Seberapa kuat IHSG bergerak?")
+        fk = go.Figure()
+        for k in ps["kelas"]:
+            fk.add_trace(go.Bar(y=["Ujian 30%", "Latih 70%"], x=[uj["kelas_pct"][k], lt["kelas_pct"][k]], name=k,
+                                orientation="h", marker_color=KELAS_WARNA[k],
+                                hovertemplate=f"{k}: %{{x:.1f}}% hari<extra></extra>"))
+        fk.update_layout(**layout_dasar(barmode="stack", height=200, hovermode="closest",
+                                        xaxis=dict(title="% hari bursa", range=[0, 100])))
+        st.plotly_chart(fk, width="stretch")
+        st.markdown(
+            f"<p class='catatan'>Kuat = perubahan harian lebih dari ±{angka_id(ps['ambang_kuat'], 0)}%, datar = di "
+            f"dalam ±{angka_id(ps['ambang_datar'], 2)}%. Di data ujian hari kuat jauh lebih sering "
+            f"({angka_id(uj['kelas_pct']['naik kuat'] + uj['kelas_pct']['turun kuat'], 0)}% vs "
+            f"{angka_id(lt['kelas_pct']['naik kuat'] + lt['kelas_pct']['turun kuat'], 0)}% hari), karena pasar "
+            f"2025-2026 dua kali lebih bergejolak (simpangan baku {angka_id(uj['std'], 2)}% vs "
+            f"{angka_id(lt['std'], 2)}%). Rata-rata hari turun ({angka_id(uj['rata_turun'], 2)}%) sedikit lebih "
+            f"dalam daripada hari naik (+{angka_id(uj['rata_naik'], 2)}%), tetapi bedanya tidak signifikan "
+            f"(p {angka_id(uj['asimetri_t']['pvalue'], 2)}).</p>", unsafe_allow_html=True)
+
+        st.subheader("2. Kondisi BI-Rate dan kurs: apa yang terjadi pada IHSG?")
+        hari_pilih = st.radio("Lihat IHSG pada", ["H0 (hari yang sama)", "H+1 (hari bursa berikutnya)"],
+                              horizontal=True, key="sim_hari")
+        h = "H0" if hari_pilih.startswith("H0") else "H+1"
+        rows = []
+        for r in sim["pola"]:
+            a, b = r[f"{h} latih"], r[f"{h} ujian"]
+            rows.append({"Kondisi": r["kondisi"], "n latih": a["n"], "Rata latih (%)": a["rata"],
+                         "Naik kuat latih (%)": a["naik_kuat"], "Turun kuat latih (%)": a["turun_kuat"],
+                         "n ujian": b["n"], "Rata ujian (%)": b["rata"], "Naik kuat ujian (%)": b["naik_kuat"],
+                         "Turun kuat ujian (%)": b["turun_kuat"], "Hasil": STATUS_TEKS.get(r[f"{h} status"])})
+        pct = st.column_config.NumberColumn(format="%.1f")
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch", column_config={
+            "Rata latih (%)": st.column_config.NumberColumn(format="%+.2f"),
+            "Rata ujian (%)": st.column_config.NumberColumn(format="%+.2f"),
+            **{c: pct for c in ["Naik kuat latih (%)", "Turun kuat latih (%)", "Naik kuat ujian (%)",
+                                "Turun kuat ujian (%)"]}})
+        terbukti = [r for r in sim["pola"] if r[f"{h} status"] == "terbukti"]
+        if h == "H0":
+            st.markdown(
+                f"<p class='catatan'>{len(terbukti)} kondisi terbukti, semuanya berhubungan dengan kurs. Saat rupiah "
+                "melemah lebih dari 0,25% IHSG turun pada hari yang sama, dan saat rupiah menguat IHSG naik. Siklus "
+                "BI-Rate (arah keputusan RDG terakhir) tidak mengubah pola itu. Hari keputusan RDG terlalu sedikit "
+                "untuk disimpulkan.</p>", unsafe_allow_html=True)
+        else:
+            gagal = [r["kondisi"] for r in sim["pola"] if r["H+1 status"] == "gagal (arah berbalik)"]
+            st.markdown(
+                "<p class='catatan'>" + (f"{len(terbukti)} kondisi terbukti untuk hari berikutnya. " if terbukti else
+                                         "Tidak ada kondisi yang terbukti untuk hari berikutnya. ")
+                + "Pola kurs pada H0 tidak berlanjut ke H+1, sehingga kondisi BI-Rate dan kurs hari ini tidak memberi "
+                "petunjuk arah IHSG besok."
+                + (f" Pola yang tampak di data latih ({'; '.join(gagal)}) justru berbalik arah di data ujian."
+                   if gagal else "") + "</p>", unsafe_allow_html=True)
+        st.markdown("<p class='catatan'>Siklus pengetatan = keputusan RDG terakhir menaikkan BI-Rate; pelonggaran = "
+                    "menurunkan. Rata = rata-rata perubahan IHSG (%) pada kelompok hari itu. Uji: t-test Welch "
+                    "terhadap hari lainnya.</p>", unsafe_allow_html=True)
+
+        st.subheader("3. Apakah gerak kuat berlanjut besok?")
+        lj = sim["lanjutan"]
+        fl = go.Figure()
+        for b, warna in [("latih", SUBTLE), ("ujian", BLUE)]:
+            fl.add_trace(go.Bar(x=ps["kelas"], y=[lj[b]["per_kelas"][k]["rata_besok"] for k in ps["kelas"]],
+                                name=f"Data {b}", marker_color=warna,
+                                customdata=[lj[b]["per_kelas"][k]["n"] for k in ps["kelas"]],
+                                hovertemplate="%{x}: besok rata-rata %{y:+.2f}% (n %{customdata})<extra></extra>"))
+        fl.add_hline(y=0, line_color=INK, line_width=1)
+        fl.update_layout(**layout_dasar(barmode="group", height=300, hovermode="closest",
+                                        xaxis=dict(title="Kelas IHSG hari ini"),
+                                        yaxis=dict(title="Rata-rata IHSG besok (%)")))
+        st.plotly_chart(fl, width="stretch")
+        sig = [k for b in lj for k, v in lj[b]["per_kelas"].items() if v["p"] is not None and v["p"] < 0.05]
+        st.markdown("<p class='catatan'>" + (
+            "Tidak ada kelas yang diikuti perubahan besok yang berbeda signifikan dari hari lain, baik di latih "
+            "maupun ujian. Naik kuat hari ini tidak berarti naik lagi besok, dan turun kuat tidak berarti "
+            "berbalik naik." if not sig else f"Kelas dengan beda signifikan: {', '.join(sorted(set(sig)))}.")
+            + "</p>", unsafe_allow_html=True)
+
+        if "lstm" in sim:
+            L = sim["lstm"]
+            mt = L["metrik"]
+            hp = L["hyperparameter"]
+            st.subheader("4. LSTM yang dilatih 70% dan diuji 30%")
+            st.markdown(
+                f"<p class='catatan'>Model dilatih ulang hanya dengan 70% data (validasi {L['n_validasi']} hari di "
+                f"ujungnya), panjang jendela {hp['sequence_length']} hari dan {hp['hidden_size']} unit dipilih dari "
+                f"loss validasi, lalu dinilai pada {L['n_ujian']} hari ujian.</p>", unsafe_allow_html=True)
+            st.dataframe(pd.DataFrame([{
+                "Model": k, "RMSE": v["rmse"], "MAE": v["mae"], "MAPE (%)": v["mape"],
+                "Arah benar (%)": v["direction_accuracy"], "p arah (PT)": v.get("pesaran_timmermann", {}).get("p_value"),
+                "p DM vs naif": v.get("dm_vs_naif", {}).get("p_value")} for k, v in mt.items()]),
+                hide_index=True, width="stretch", column_config={
+                    "RMSE": st.column_config.NumberColumn(format="%.2f"),
+                    "MAE": st.column_config.NumberColumn(format="%.2f"),
+                    "MAPE (%)": st.column_config.NumberColumn(format="%.3f"),
+                    "Arah benar (%)": st.column_config.NumberColumn(format="%.1f"),
+                    "p arah (PT)": st.column_config.NumberColumn(format="%.3f"),
+                    "p DM vs naif": st.column_config.NumberColumn(format="%.3f")})
+
+            c1, c2 = st.columns(2)
+            with c1:
+                kq = pd.DataFrame(L["kuintil"])
+                fq = go.Figure()
+                fq.add_trace(go.Bar(x=kq["kuintil"], y=kq["naik_kuat"], name="Besok naik kuat", marker_color=C_NAIK))
+                fq.add_trace(go.Bar(x=kq["kuintil"], y=kq["turun_kuat"], name="Besok turun kuat", marker_color=C_TURUN))
+                fq.update_layout(**layout_dasar(barmode="group", height=320, hovermode="closest",
+                                                title=dict(text="Hari ujian dikelompokkan menurut prediksi LSTM"),
+                                                xaxis=dict(title="Kuintil prediksi (1 = paling pesimis, 5 = paling optimis)",
+                                                           tickmode="array", tickvals=[1, 2, 3, 4, 5]),
+                                                yaxis=dict(title="% hari")))
+                st.plotly_chart(fq, width="stretch")
+                st.markdown(
+                    f"<p class='catatan'>Bila LSTM bisa membaca arah, kuintil 5 akan banyak naik kuat dan sedikit "
+                    f"turun kuat. Yang terjadi, keduanya naik bersama (kuintil 5: naik kuat "
+                    f"{angka_id(kq['naik_kuat'].iloc[-1], 0)}%, turun kuat {angka_id(kq['turun_kuat'].iloc[-1], 0)}%; "
+                    f"kuintil 1: {angka_id(kq['naik_kuat'].iloc[0], 0)}% dan {angka_id(kq['turun_kuat'].iloc[0], 0)}%). "
+                    "Prediksi LSTM lebih mencerminkan pasar yang sedang bergejolak daripada arah IHSG.</p>",
+                    unsafe_allow_html=True)
+            with c2:
+                kp = L["kelas_prediksi_pct"]
+                st.markdown("<p class='label'>Kelas yang diprediksi LSTM di data ujian</p>", unsafe_allow_html=True)
+                st.dataframe(pd.DataFrame([{"Kelas": k, "Prediksi LSTM (%)": kp[k],
+                                            "Aktual (%)": uj["kelas_pct"][k]} for k in ps["kelas"]]),
+                             hide_index=True, width="stretch", column_config={
+                                 "Prediksi LSTM (%)": st.column_config.NumberColumn(format="%.1f"),
+                                 "Aktual (%)": st.column_config.NumberColumn(format="%.1f")})
+                st.markdown(
+                    f"<p class='catatan'>Simpangan baku prediksi LSTM {angka_id(L['pred_std_pct'], 3)}% per hari, "
+                    f"sedangkan IHSG aktual {angka_id(L['aktual_std_pct'], 2)}%. Korelasi peringkat prediksi dengan "
+                    f"aktual {angka_id(L['spearman']['rho'], 3)} (p {angka_id(L['spearman']['p_value'], 2)}). Pada "
+                    f"{L['arah_hari_kuat']['n']} hari ujian yang bergerak kuat, arah LSTM benar "
+                    f"{angka_id(L['arah_hari_kuat']['benar_pct'], 1)}%.</p>", unsafe_allow_html=True)
+
+# ===========================================================================
+# TAB 7  REKAM JEJAK (forward test)
 # ===========================================================================
 with tab_log:
     if not os.path.exists(config.PREDICTION_LOG):

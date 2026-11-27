@@ -15,3 +15,7 @@ PNG 300 dpi untuk Word, PDF vektor untuk LaTeX/cetak.
 | `g09_kurs_ihsg_hari_sama` | Hubungan perubahan kurs dan return IHSG pada hari yang sama |
 | `g10_impulse_response` | Impulse response return IHSG dari VAR(2), guncangan 1 simpangan baku (Cholesky) |
 | `g11_event_study_rdg` | Cumulative abnormal return IHSG di sekitar keputusan RDG Bank Indonesia |
+| `g12_simulasi_kelas_ihsg` | Sebaran kelas pergerakan harian IHSG pada data latih (70%) dan ujian (30%) |
+| `g13_simulasi_pola_kurs_birate` | Rata-rata perubahan IHSG menurut kondisi kurs dan siklus BI-Rate, data latih dibanding ujian |
+| `g14_simulasi_lanjutan` | Rata-rata perubahan IHSG hari berikutnya menurut kelas pergerakan hari ini |
+| `g15_simulasi_lstm_kuintil` | Kejadian naik kuat dan turun kuat IHSG menurut kuintil prediksi LSTM |

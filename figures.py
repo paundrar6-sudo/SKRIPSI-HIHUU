@@ -340,6 +340,101 @@ def g_event(eko):
     simpan(fig, "g11_event_study_rdg", "Cumulative abnormal return IHSG di sekitar keputusan RDG Bank Indonesia")
 
 
+KELAS_WARNA = {"turun kuat": "#a2191f", "turun lemah": "#ff8389", "datar": "#c6c6c6",
+               "naik lemah": "#6fdc8c", "naik kuat": "#0e6027"}
+
+
+def g_sim_kelas(sim):
+    ds, kelas = sim["distribusi"], sim["pengaturan"]["kelas"]
+    fig, ax = plt.subplots(figsize=(LEBAR, 4.2 * CM))
+    for b, y in [("ujian", 0), ("latih", 1)]:
+        kiri = 0
+        for k in kelas:
+            v = ds[b]["kelas_pct"][k]
+            ax.barh(y, v, left=kiri, color=KELAS_WARNA[k], height=0.6, label=k if b == "latih" else None)
+            if v >= 6:
+                ax.text(kiri + v / 2, y, angka(v, 0) + "%", ha="center", va="center", fontsize=8,
+                        color="white" if k in ("turun kuat", "naik kuat") else HITAM)
+            kiri += v
+    ax.set_yticks([0, 1], [f"Ujian 30%\n({ds['ujian']['n']} hari)", f"Latih 70%\n({ds['latih']['n']} hari)"])
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("Persentase hari bursa (%)")
+    ax.grid(False)
+    legenda_atas(ax, ncol=5)
+    simpan(fig, "g12_simulasi_kelas_ihsg", "Sebaran kelas pergerakan harian IHSG pada data latih (70%) dan ujian (30%)")
+
+
+def g_sim_pola(sim):
+    pola = [r for r in sim["pola"] if r["jenis"] in ("kurs", "kurs x siklus")]
+    singkat = {"kurs naik (rupiah melemah)": "Rupiah melemah", "kurs turun (rupiah menguat)": "Rupiah menguat",
+               "kurs tetap": "Kurs tetap"}
+
+    def label(k):
+        bagian = k.split(" & siklus ")
+        return singkat[bagian[0]] + (f"\n+ {bagian[1]}" if len(bagian) > 1 else "")
+
+    nama = [label(r["kondisi"]) for r in pola]
+    fig, ax = plt.subplots(1, 2, figsize=(LEBAR, 11 * CM), sharey=True)
+    y = np.arange(len(pola))
+    for a, h in zip(ax, ["H0", "H+1"]):
+        for j, (b, c) in enumerate([("latih", ABU), ("ujian", BIRU)]):
+            v = [r[f"{h} {b}"]["rata"] for r in pola]
+            a.barh(y + (j - 0.5) * 0.38, v, 0.38, color=c, label=f"Data {b}")
+        a.axvline(0, color=HITAM, lw=0.8)
+        a.set_title(f"IHSG {h} ({'hari yang sama' if h == 'H0' else 'hari bursa berikutnya'})", loc="left")
+        a.set_xlabel("Rata-rata perubahan IHSG (%)")
+        a.xaxis.set_major_formatter(fmt(1))
+        a.grid(axis="y", visible=False)
+    lim = max(abs(v) for r in pola for h in ("H0", "H+1") for b in ("latih", "ujian")
+              for v in [r[f"{h} {b}"]["rata"]]) * 1.15
+    for a in ax:
+        a.set_xlim(-lim, lim)
+    for i, r in enumerate(pola):
+        if r["H0 status"] == "terbukti":
+            ax[0].text(lim * 0.98, i, "terbukti", ha="right", va="center", fontsize=7.5, color=HIJAU)
+        if r["H+1 status"] == "gagal (arah berbalik)":
+            ax[1].text(lim * 0.98, i, "berbalik", ha="right", va="center", fontsize=7.5, color=MERAH)
+    ax[0].set_yticks(y, nama, fontsize=8)
+    ax[0].invert_yaxis()
+    h_, l_ = ax[0].get_legend_handles_labels()
+    fig.legend(h_, l_, loc="upper right", ncol=2, bbox_to_anchor=(1, 1.0))
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    simpan(fig, "g13_simulasi_pola_kurs_birate",
+           "Rata-rata perubahan IHSG menurut kondisi kurs dan siklus BI-Rate, data latih dibanding ujian")
+
+
+def g_sim_lanjutan(sim):
+    lj, kelas = sim["lanjutan"], sim["pengaturan"]["kelas"]
+    fig, ax = plt.subplots(figsize=(LEBAR, 6 * CM))
+    x = np.arange(len(kelas))
+    for j, (b, c) in enumerate([("latih", ABU), ("ujian", BIRU)]):
+        ax.bar(x + (j - 0.5) * 0.38, [lj[b]["per_kelas"][k]["rata_besok"] for k in kelas], 0.38, color=c,
+               label=f"Data {b}")
+    ax.axhline(0, color=HITAM, lw=0.8)
+    ax.set_xticks(x, [k.replace(" ", "\n") for k in kelas])
+    ax.set_xlabel("Kelas IHSG hari ini (H0)")
+    ax.set_ylabel("Rata-rata IHSG besok (%)")
+    ax.yaxis.set_major_formatter(fmt(2))
+    ax.grid(axis="x", visible=False)
+    legenda_atas(ax, ncol=2)
+    simpan(fig, "g14_simulasi_lanjutan", "Rata-rata perubahan IHSG hari berikutnya menurut kelas pergerakan hari ini")
+
+
+def g_sim_lstm(sim):
+    kq = pd.DataFrame(sim["lstm"]["kuintil"])
+    fig, ax = plt.subplots(figsize=(LEBAR * 0.8, 6 * CM))
+    x = kq["kuintil"].values
+    ax.bar(x - 0.19, kq["naik_kuat"], 0.38, color=HIJAU, label="Besok naik kuat (> +1%)")
+    ax.bar(x + 0.19, kq["turun_kuat"], 0.38, color=MERAH, label="Besok turun kuat (< −1%)")
+    ax.set_xticks(x, ["1\npaling\npesimis", "2", "3", "4", "5\npaling\noptimis"])
+    ax.set_xlabel("Kuintil prediksi LSTM (70/30) di data ujian")
+    ax.set_ylabel("Persentase hari (%)")
+    ax.yaxis.set_major_formatter(fmt(0))
+    ax.grid(axis="x", visible=False)
+    legenda_atas(ax, ncol=2)
+    simpan(fig, "g15_simulasi_lstm_kuintil", "Kejadian naik kuat dan turun kuat IHSG menurut kuintil prediksi LSTM")
+
+
 def main():
     print("Membuat grafik di folder figures/ ...")
     df = pd.read_csv(config.FEATURES_CSV, parse_dates=["date"])
@@ -363,6 +458,13 @@ def main():
         g_kontemporer(df, eko)
         g_irf(eko)
         g_event(eko)
+    sim = baca(os.path.join(config.MODEL_DIR, "simulasi.json"))
+    if sim:
+        g_sim_kelas(sim)
+        g_sim_pola(sim)
+        g_sim_lanjutan(sim)
+        if "lstm" in sim:
+            g_sim_lstm(sim)
     with open(os.path.join(OUT, "DAFTAR_GAMBAR.md"), "w", encoding="utf-8") as f:
         f.write("# Daftar gambar\n\nPNG 300 dpi untuk Word, PDF vektor untuk LaTeX/cetak.\n\n"
                 "| Berkas | Usulan judul gambar |\n|---|---|\n")

@@ -162,7 +162,9 @@ def main():
             run("experiments.py")
             banner("6d", "Analisis ekonometrika (Granger/VAR, event study RDG)")
             run("econometrics.py")
-            banner("6e", "Grafik resolusi tinggi untuk naskah (figures/)")
+            banner("6e", "Simulasi 70/30 kekuatan naik/turun IHSG")
+            run("simulasi.py")
+            banner("6f", "Grafik resolusi tinggi untuk naskah (figures/)")
             run("figures.py")
 
     print(f"\nSelesai menyiapkan semuanya dalam {time.time() - t0:.0f} detik.")

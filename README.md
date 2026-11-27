@@ -31,6 +31,7 @@ Perintah lain:
 | Granger/VAR, event study RDG | `.\.venv\Scripts\python.exe econometrics.py` |
 | Catat prediksi harian (forward test) | `.\.venv\Scripts\python.exe daily_update.py` |
 | Jadwalkan otomatis Senin-Jumat 17:30 | `.\.venv\Scripts\python.exe daily_update.py --pasang-jadwal 17:30` |
+| Simulasi 70/30: kekuatan naik/turun IHSG per kondisi BI-Rate & kurs, LSTM 70/30 | `.\.venv\Scripts\python.exe simulasi.py` (tanpa LSTM: `--tanpa-lstm`) |
 | Grafik naskah (PNG 300 dpi + PDF) | `.\.venv\Scripts\python.exe figures.py` (hasil di `figures/`, daftar di `figures/DAFTAR_GAMBAR.md`) |
 
 Versi paket di `requirements.txt` dikunci sesuai lingkungan saat hasil skripsi dibuat (Python 3.13).
