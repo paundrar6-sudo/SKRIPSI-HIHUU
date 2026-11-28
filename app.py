@@ -723,11 +723,16 @@ with tab_sim:
                                 "Turun kuat ujian (%)"]}})
         terbukti = [r for r in sim["pola"] if r[f"{h} status"] == "terbukti"]
         if h == "H0":
+            n_uji = sum(1 for r in sim["pola"] for hh in ("H0", "H+1") if r[f"{hh} latih"]["p"] is not None)
+            batas = 0.05 / n_uji
+            kuat_bonf = [r["kondisi"] for r in terbukti if r["H0 latih"]["p"] < batas and r["H0 ujian"]["p"] < batas]
             st.markdown(
                 f"<p class='catatan'>{len(terbukti)} kondisi terbukti, semuanya berhubungan dengan kurs. Saat rupiah "
-                "melemah lebih dari 0,25% IHSG turun pada hari yang sama, dan saat rupiah menguat IHSG naik. Siklus "
-                "BI-Rate (arah keputusan RDG terakhir) tidak mengubah pola itu. Hari keputusan RDG terlalu sedikit "
-                "untuk disimpulkan.</p>", unsafe_allow_html=True)
+                "melemah lebih dari 0,25% IHSG turun pada hari yang sama, dan saat rupiah menguat IHSG naik. Setelah "
+                f"koreksi uji berganda (Bonferroni, {n_uji} uji, batas p {angka_id(batas, 4)}), yang tetap lolos di "
+                f"latih dan ujian hanya {len(kuat_bonf)}: {'; '.join(kuat_bonf)}. Kombinasi dengan siklus BI-Rate "
+                "hanya mewarisi efek kurs, karena siklus BI-Rate sendiri tidak berpola. Hari keputusan RDG terlalu "
+                "sedikit untuk disimpulkan.</p>", unsafe_allow_html=True)
         else:
             gagal = [r["kondisi"] for r in sim["pola"] if r["H+1 status"] == "gagal (arah berbalik)"]
             st.markdown(
