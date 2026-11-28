@@ -80,6 +80,7 @@ def prediksi(hist: pd.DataFrame, models, scaler, target_std) -> dict:
     pct = (h1 - h0) / h0 * 100
     return {
         "tanggal_h0": hist["date"].iloc[-1],
+        "awal_input": hist["date"].iloc[0],
         "tanggal_h1": hist["date"].iloc[-1] + pd.tseries.offsets.BDay(1),
         "ihsg_h0": h0, "ihsg_h1": h1, "selisih_poin": h1 - h0, "perubahan_pct": pct,
         "arah": "NAIK" if pct > 0 else "TURUN" if pct < 0 else "TETAP",

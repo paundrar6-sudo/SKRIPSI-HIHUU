@@ -112,7 +112,7 @@ def g_data(df, m):
         ax[0].text(uji, ax[0].get_ylim()[1], " periode uji", va="top", fontsize=8, color="#525252")
     sumbu_tanggal(ax[2], 12)
     fig.align_ylabels(ax)
-    simpan(fig, "g01_data_penelitian", "IHSG, kurs JISDOR, dan BI-Rate selama periode penelitian")
+    simpan(fig, "g01_data_penelitian", "IHSG, kurs JISDOR, dan BI-Rate selama periode penelitian (area abu-abu = periode uji)")
 
 
 def g_kurs_sumber():
@@ -208,7 +208,7 @@ def g_walkforward(wf):
     ax.set_ylim(min(-0.1, rel.min() - 0.1), rel.max() + 0.15)
     ax.grid(axis="x", visible=False)
     ax.set_title("Positif = LSTM lebih buruk dari naif; p = uji Diebold-Mariano", loc="left")
-    simpan(fig, "g05_walkforward", "Selisih RMSE LSTM terhadap naif di setiap lipatan walk-forward")
+    simpan(fig, "g05_walkforward", "Selisih RMSE LSTM terhadap model naif pada setiap lipatan walk-forward")
 
 
 def g_ablation(ex):
@@ -238,7 +238,7 @@ def g_ablation(ex):
     legenda_atas(ax, ncol=2)
     ax.text(1, -0.36, "Angka p = uji Diebold-Mariano terhadap M0 (pembagian latih/uji)", transform=ax.transAxes,
             ha="right", fontsize=8, color="#525252")
-    simpan(fig, "g06_skenario_m0_m4", "RMSE skenario fitur M0-M4 relatif terhadap baseline naif")
+    simpan(fig, "g06_skenario_m0_m4", "RMSE skenario M0-M4 relatif terhadap model naif")
 
 
 def g_horizon(ex):
@@ -312,7 +312,7 @@ def g_irf(eko):
     fig.legend(h, lab, loc="upper right", ncol=2, bbox_to_anchor=(1, 1.0))
     fig.tight_layout(rect=(0, 0, 1, 0.9))
     simpan(fig, "g10_impulse_response",
-           f"Impulse response return IHSG dari VAR({v['lag_aic']}), guncangan 1 simpangan baku (Cholesky)")
+           f"Impulse response return IHSG dari VAR({v['lag_aic']}) terhadap guncangan satu simpangan baku")
 
 
 def g_event(eko):
@@ -356,12 +356,12 @@ def g_sim_kelas(sim):
                 ax.text(kiri + v / 2, y, angka(v, 0) + "%", ha="center", va="center", fontsize=8,
                         color="white" if k in ("turun kuat", "naik kuat") else HITAM)
             kiri += v
-    ax.set_yticks([0, 1], [f"Ujian 30%\n({ds['ujian']['n']} hari)", f"Latih 70%\n({ds['latih']['n']} hari)"])
+    ax.set_yticks([0, 1], [f"Uji 30%\n({ds['ujian']['n']} hari)", f"Latih 70%\n({ds['latih']['n']} hari)"])
     ax.set_xlim(0, 100)
     ax.set_xlabel("Persentase hari bursa (%)")
     ax.grid(False)
     legenda_atas(ax, ncol=5)
-    simpan(fig, "g12_simulasi_kelas_ihsg", "Sebaran kelas pergerakan harian IHSG pada data latih (70%) dan ujian (30%)")
+    simpan(fig, "g12_simulasi_kelas_ihsg", "Sebaran kelas pergerakan harian IHSG pada data latih (70%) dan data uji (30%)")
 
 
 def g_sim_pola(sim):
@@ -400,7 +400,7 @@ def g_sim_pola(sim):
     fig.legend(h_, l_, loc="upper right", ncol=2, bbox_to_anchor=(1, 1.0))
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     simpan(fig, "g13_simulasi_pola_kurs_birate",
-           "Rata-rata perubahan IHSG menurut kondisi kurs dan siklus BI-Rate, data latih dibanding ujian")
+           "Rata-rata perubahan IHSG menurut kondisi kurs dan siklus BI-Rate pada data latih dan data uji")
 
 
 def g_sim_lanjutan(sim):
@@ -427,7 +427,7 @@ def g_sim_lstm(sim):
     ax.bar(x - 0.19, kq["naik_kuat"], 0.38, color=HIJAU, label="Besok naik kuat (> +1%)")
     ax.bar(x + 0.19, kq["turun_kuat"], 0.38, color=MERAH, label="Besok turun kuat (< −1%)")
     ax.set_xticks(x, ["1\npaling\npesimis", "2", "3", "4", "5\npaling\noptimis"])
-    ax.set_xlabel("Kuintil prediksi LSTM (70/30) di data ujian")
+    ax.set_xlabel("Kuintil prediksi LSTM (70/30) di data uji")
     ax.set_ylabel("Persentase hari (%)")
     ax.yaxis.set_major_formatter(fmt(0))
     ax.grid(axis="x", visible=False)

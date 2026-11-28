@@ -5,7 +5,7 @@ Menggabungkan sumber data NYATA menjadi satu deret waktu per hari bursa:
 
     1. ihsg.csv            (Yahoo Finance)  -> Y  : IHSG
     2. bi_rate.csv         (Bank Indonesia) -> X1 : BI Rate
-    3. kurs_usd_idr.csv    (Yahoo Finance)  -> X2 : kurs rupiah per dolar AS
+    3. kurs_usd_idr.csv    (JISDOR BI)      -> X2 : kurs rupiah per dolar AS (cadangan: Yahoo)
     4. fed_funds_rate.csv  (FRED)           -> variabel kontrol
 
 Keluaran:

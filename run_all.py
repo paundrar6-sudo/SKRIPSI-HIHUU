@@ -6,7 +6,7 @@ run_all.py  --  SATU PERINTAH untuk menjalankan seluruh proyek
 Urutan yang dikerjakan otomatis:
     0. Cek & pasang paket Python yang belum ada
     1. Unduh data IHSG asli terbaru (Yahoo Finance)
-    2. Unduh kurs USD/IDR asli (Yahoo Finance)  -> variabel X2
+    2. Unduh kurs USD/IDR JISDOR (Bank Indonesia; cadangan Yahoo)  -> variabel X2
     3. Unduh Fed Funds Rate asli (FRED)
     4. Salin BI Rate asli (data_bawaan/bi_rate.csv)  -> variabel X1
     5. Gabungkan semua data                       (build_dataset.py)

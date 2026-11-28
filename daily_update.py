@@ -1,14 +1,15 @@
 """
 daily_update.py
 ===============
-Pipeline near-real-time harian (proposal subbab 3.11):
+Pipeline near-real-time harian (skripsi Subbab 3.12, Rancangan Sistem Real-Time):
 
     1. Ambil data terbaru: IHSG (Yahoo), JISDOR (BI), Fed Funds Rate (FRED)
     2. Catat status tiap sumber (berhasil / gagal / tanggal terakhir)
     3. Gabungkan data (build_dataset.py)
     4. Isi nilai aktual untuk prediksi lama yang tanggal H+1-nya sudah lewat
     5. Buat prediksi H+1 dengan model yang SUDAH DIBEKUKAN (tidak dilatih ulang),
-       lalu simpan ke logs/prediksi_harian.csv beserta waktu pembuatannya
+       lalu simpan ke logs/prediksi_harian.csv beserta waktu pembuatan, versi
+       model, rentang input (awal_input s.d. tanggal_h0), dan status data
 
 Karena model tidak dilatih ulang dan setiap prediksi dicatat sebelum IHSG
 H+1 diketahui, log ini adalah uji maju (forward test) yang jujur.
@@ -32,7 +33,13 @@ import config  # noqa: E402
 
 KOLOM = ["dibuat_pada", "tanggal_h0", "tanggal_h1", "ihsg_h0", "prediksi_h1", "perubahan_pct",
          "sebaran_pct", "bi_rate", "kurs", "status_data", "aktual_h1", "galat_poin", "galat_naif_poin",
-         "arah_benar"]
+         "arah_benar", "versi_model", "awal_input"]
+
+
+def versi_model() -> str:
+    """Skenario, jendela, unit, dan tanggal berkas model, misalnya M3-L40-H32-2026-11-23."""
+    tgl = datetime.fromtimestamp(os.path.getmtime(config.MODEL_PATH)).date()
+    return f"M3-L{config.SEQUENCE_LENGTH}-H{config.HIDDEN_SIZE}-{tgl}"
 
 
 def ambil(nama, modul, fungsi, path):
@@ -52,9 +59,11 @@ def ambil(nama, modul, fungsi, path):
 def baca_log() -> pd.DataFrame:
     if os.path.exists(config.PREDICTION_LOG):
         log = pd.read_csv(config.PREDICTION_LOG, parse_dates=["tanggal_h0", "tanggal_h1"],
-                          dtype={"status_data": "object", "dibuat_pada": "object"})
+                          dtype={"status_data": "object", "dibuat_pada": "object",
+                                 "versi_model": "object", "awal_input": "object"})
     else:
         log = pd.DataFrame(columns=KOLOM)
+    log = log.reindex(columns=KOLOM)    # log lama belum punya versi_model/awal_input
     # kolom yang masih kosong terbaca sebagai float; arah_benar perlu menampung True/False
     log["arah_benar"] = log["arah_benar"].astype("object")
     return log
@@ -101,7 +110,8 @@ def jalankan(tanpa_unduh=False):
                 "tanggal_h0": p["tanggal_h0"], "tanggal_h1": p["tanggal_h1"], "ihsg_h0": p["ihsg_h0"],
                 "prediksi_h1": p["ihsg_h1"], "perubahan_pct": p["perubahan_pct"],
                 "sebaran_pct": p["sebaran_pct"], "bi_rate": p["bi_rate"], "kurs": p["kurs"],
-                "status_data": "; ".join(status) or "tanpa unduh"}
+                "status_data": "; ".join(status) or "tanpa unduh",
+                "versi_model": versi_model(), "awal_input": p["awal_input"].date().isoformat()}
         log = pd.concat([log, pd.DataFrame([baru])], ignore_index=True)
         print(f"Prediksi baru: H0 {p['tanggal_h0'].date()} IHSG {p['ihsg_h0']:,.2f} -> "
               f"H+1 {p['tanggal_h1'].date()} {p['ihsg_h1']:,.2f} ({p['perubahan_pct']:+.3f}%)")

@@ -3,14 +3,17 @@ econometrics.py
 ===============
 Analisis pelengkap untuk menafsirkan hasil LSTM: hubungan antara BI-Rate, kurs
 USD/IDR, dan IHSG. Bagian ini membahas keterkaitan, bukan klaim kausalitas
-struktural (lihat proposal: hipotesis diarahkan pada tambahan informasi).
+struktural (skripsi Subbab 3.11; hasil di Subbab 4.6).
 
-1. Efek kontemporer  : ret_ihsg_t = a + b1 ret_kurs_t + b2 d_bi_t + e  (OLS, galat HAC Newey-West)
+1. Efek kontemporer  : ret_ihsg_t = a + b1 ret_kurs_t + b2 d_bi_t + e
+                       (OLS, galat HAC Newey-West; Newey & West, 1987; Pers. 3.4-3.5)
 2. Granger & VAR     : apakah kurs / BI-Rate hari ini membantu menjelaskan IHSG hari-hari berikutnya?
-                       VAR(p) pada [ret_ihsg, ret_kurs, d_bi], p dipilih AIC (maks 10),
-                       ditambah impulse response 10 hari
-3. Event study RDG   : abnormal return IHSG di sekitar 72 keputusan RDG Bank Indonesia
-                       (model rata-rata konstan, jendela estimasi [-130, -11] hari bursa)
+                       VAR(p) pada [ret_ihsg, ret_kurs, d_bi] (Sims, 1980), p dipilih AIC (Akaike, 1974;
+                       maks 10), uji Granger (Granger, 1969), ditambah impulse response 10 hari (Pers. 3.9-3.11)
+3. Event study RDG   : abnormal return IHSG di sekitar keputusan RDG Bank Indonesia (Brown & Warner, 1985;
+                       Patell, 1976; Pers. 3.12-3.13). Dari 72 keputusan di bi_rate.csv, 64 yang punya
+                       jendela estimasi [-130, -11] hari bursa lengkap (naik 11, turun 6, tetap 47);
+                       model rata-rata konstan, p dikoreksi Bonferroni
 
 Jalankan:
     python econometrics.py

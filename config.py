@@ -14,6 +14,9 @@ import os
 # --------------------------------------------------------------------------
 # Rentang waktu penelitian (5 tahun terakhir)
 # --------------------------------------------------------------------------
+# Batas atas unduhan. Periode yang dianalisis di skripsi (Subbab 3.4) adalah
+# 4 Januari 2021 s.d. 20 November 2026; hari sesudahnya hanya dipakai untuk
+# prediksi real-time dan forward test (Subbab 3.12).
 START_DATE = "2021-01-01"
 END_DATE = "2026-12-31"
 
@@ -21,8 +24,9 @@ END_DATE = "2026-12-31"
 # Sumber data REAL (bukan simulasi)
 # --------------------------------------------------------------------------
 IHSG_TICKER = "^JKSE"                      # Yahoo Finance - IHSG
-# Kurs rupiah per 1 dolar AS (USD/IDR) dari Yahoo Finance. "IDR=X" adalah
-# simbol standar; "USDIDR=X" dipakai sebagai cadangan bila yang pertama kosong.
+# Kurs rupiah per 1 dolar AS (USD/IDR): sumber utama JISDOR Bank Indonesia
+# (diunduh fetch_kurs.py). Simbol Yahoo Finance di bawah hanya CADANGAN bila
+# JISDOR tidak dapat diakses; "USDIDR=X" dicoba bila "IDR=X" kosong.
 KURS_TICKERS = ["IDR=X", "USDIDR=X"]
 # Fed Funds Rate (suku bunga acuan AS) - diambil langsung dari FRED
 # (Federal Reserve Economic Data), tidak butuh API key.

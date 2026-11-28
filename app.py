@@ -668,8 +668,8 @@ with tab_kontrib:
 # ===========================================================================
 KELAS_WARNA = {"turun kuat": "#a2191f", "turun lemah": "#ff8389", "datar": "#c6c6c6",
                "naik lemah": "#6fdc8c", "naik kuat": "#0e6027"}
-STATUS_TEKS = {"terbukti": "Terbukti di ujian", "arah sama, ujian tidak signifikan": "Arah sama, belum signifikan",
-               "gagal (arah berbalik)": "Gagal: berbalik di ujian", "tidak ada pola di latih": "Tidak ada pola",
+STATUS_TEKS = {"terbukti": "Terbukti di data uji", "arah sama, ujian tidak signifikan": "Arah sama, belum signifikan",
+               "gagal (arah berbalik)": "Gagal: berbalik di data uji", "tidak ada pola di latih": "Tidak ada pola",
                "sampel kurang": "Sampel terlalu sedikit"}
 
 with tab_sim:
@@ -681,14 +681,14 @@ with tab_sim:
         st.markdown(
             f"<p class='catatan'>Data dibagi menurut waktu: <b>70% latih</b> ({tgl(lt['mulai'], singkat=True)} s.d. "
             f"{tgl(lt['akhir'], singkat=True)}, {lt['n']} hari) untuk menemukan pola dan melatih LSTM, dan "
-            f"<b>30% ujian</b> ({tgl(uj['mulai'], singkat=True)} s.d. {tgl(uj['akhir'], singkat=True)}, {uj['n']} hari) "
+            f"<b>30% data uji</b> ({tgl(uj['mulai'], singkat=True)} s.d. {tgl(uj['akhir'], singkat=True)}, {uj['n']} hari) "
             "yang tidak disentuh sampai penilaian. Sebuah pola dianggap <b>terbukti</b> bila signifikan di data latih "
-            "dan muncul lagi dengan arah sama serta signifikan di data ujian.</p>", unsafe_allow_html=True)
+            "dan muncul lagi dengan arah sama serta signifikan di data uji.</p>", unsafe_allow_html=True)
 
         st.subheader("1. Seberapa kuat IHSG bergerak?")
         fk = go.Figure()
         for k in ps["kelas"]:
-            fk.add_trace(go.Bar(y=["Ujian 30%", "Latih 70%"], x=[uj["kelas_pct"][k], lt["kelas_pct"][k]], name=k,
+            fk.add_trace(go.Bar(y=["Uji 30%", "Latih 70%"], x=[uj["kelas_pct"][k], lt["kelas_pct"][k]], name=k,
                                 orientation="h", marker_color=KELAS_WARNA[k],
                                 hovertemplate=f"{k}: %{{x:.1f}}% hari<extra></extra>"))
         fk.update_layout(**layout_dasar(barmode="stack", height=200, hovermode="closest",
@@ -696,7 +696,7 @@ with tab_sim:
         st.plotly_chart(fk, width="stretch")
         st.markdown(
             f"<p class='catatan'>Kuat = perubahan harian lebih dari ±{angka_id(ps['ambang_kuat'], 0)}%, datar = di "
-            f"dalam ±{angka_id(ps['ambang_datar'], 2)}%. Di data ujian hari kuat jauh lebih sering "
+            f"dalam ±{angka_id(ps['ambang_datar'], 2)}%. Di data uji hari kuat jauh lebih sering "
             f"({angka_id(uj['kelas_pct']['naik kuat'] + uj['kelas_pct']['turun kuat'], 0)}% vs "
             f"{angka_id(lt['kelas_pct']['naik kuat'] + lt['kelas_pct']['turun kuat'], 0)}% hari), karena pasar "
             f"2025-2026 dua kali lebih bergejolak (simpangan baku {angka_id(uj['std'], 2)}% vs "
@@ -713,14 +713,14 @@ with tab_sim:
             a, b = r[f"{h} latih"], r[f"{h} ujian"]
             rows.append({"Kondisi": r["kondisi"], "n latih": a["n"], "Rata latih (%)": a["rata"],
                          "Naik kuat latih (%)": a["naik_kuat"], "Turun kuat latih (%)": a["turun_kuat"],
-                         "n ujian": b["n"], "Rata ujian (%)": b["rata"], "Naik kuat ujian (%)": b["naik_kuat"],
-                         "Turun kuat ujian (%)": b["turun_kuat"], "Hasil": STATUS_TEKS.get(r[f"{h} status"])})
+                         "n uji": b["n"], "Rata uji (%)": b["rata"], "Naik kuat uji (%)": b["naik_kuat"],
+                         "Turun kuat uji (%)": b["turun_kuat"], "Hasil": STATUS_TEKS.get(r[f"{h} status"])})
         pct = st.column_config.NumberColumn(format="%.1f")
         st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch", column_config={
             "Rata latih (%)": st.column_config.NumberColumn(format="%+.2f"),
-            "Rata ujian (%)": st.column_config.NumberColumn(format="%+.2f"),
-            **{c: pct for c in ["Naik kuat latih (%)", "Turun kuat latih (%)", "Naik kuat ujian (%)",
-                                "Turun kuat ujian (%)"]}})
+            "Rata uji (%)": st.column_config.NumberColumn(format="%+.2f"),
+            **{c: pct for c in ["Naik kuat latih (%)", "Turun kuat latih (%)", "Naik kuat uji (%)",
+                                "Turun kuat uji (%)"]}})
         terbukti = [r for r in sim["pola"] if r[f"{h} status"] == "terbukti"]
         if h == "H0":
             n_uji = sum(1 for r in sim["pola"] for hh in ("H0", "H+1") if r[f"{hh} latih"]["p"] is not None)
@@ -730,7 +730,7 @@ with tab_sim:
                 f"<p class='catatan'>{len(terbukti)} kondisi terbukti, semuanya berhubungan dengan kurs. Saat rupiah "
                 "melemah lebih dari 0,25% IHSG turun pada hari yang sama, dan saat rupiah menguat IHSG naik. Setelah "
                 f"koreksi uji berganda (Bonferroni, {n_uji} uji, batas p {angka_id(batas, 4)}), yang tetap lolos di "
-                f"latih dan ujian hanya {len(kuat_bonf)}: {'; '.join(kuat_bonf)}. Kombinasi dengan siklus BI-Rate "
+                f"latih dan data uji hanya {len(kuat_bonf)}: {'; '.join(kuat_bonf)}. Kombinasi dengan siklus BI-Rate "
                 "hanya mewarisi efek kurs, karena siklus BI-Rate sendiri tidak berpola. Hari keputusan RDG terlalu "
                 "sedikit untuk disimpulkan.</p>", unsafe_allow_html=True)
         else:
@@ -740,7 +740,7 @@ with tab_sim:
                                          "Tidak ada kondisi yang terbukti untuk hari berikutnya. ")
                 + "Pola kurs pada H0 tidak berlanjut ke H+1, sehingga kondisi BI-Rate dan kurs hari ini tidak memberi "
                 "petunjuk arah IHSG besok."
-                + (f" Pola yang tampak di data latih ({'; '.join(gagal)}) justru berbalik arah di data ujian."
+                + (f" Pola yang tampak di data latih ({'; '.join(gagal)}) justru berbalik arah di data uji."
                    if gagal else "") + "</p>", unsafe_allow_html=True)
         st.markdown("<p class='catatan'>Siklus pengetatan = keputusan RDG terakhir menaikkan BI-Rate; pelonggaran = "
                     "menurunkan. Rata = rata-rata perubahan IHSG (%) pada kelompok hari itu. Uji: t-test Welch "
@@ -751,7 +751,7 @@ with tab_sim:
         fl = go.Figure()
         for b, warna in [("latih", SUBTLE), ("ujian", BLUE)]:
             fl.add_trace(go.Bar(x=ps["kelas"], y=[lj[b]["per_kelas"][k]["rata_besok"] for k in ps["kelas"]],
-                                name=f"Data {b}", marker_color=warna,
+                                name="Data latih" if b == "latih" else "Data uji", marker_color=warna,
                                 customdata=[lj[b]["per_kelas"][k]["n"] for k in ps["kelas"]],
                                 hovertemplate="%{x}: besok rata-rata %{y:+.2f}% (n %{customdata})<extra></extra>"))
         fl.add_hline(y=0, line_color=INK, line_width=1)
@@ -762,7 +762,7 @@ with tab_sim:
         sig = [k for b in lj for k, v in lj[b]["per_kelas"].items() if v["p"] is not None and v["p"] < 0.05]
         st.markdown("<p class='catatan'>" + (
             "Tidak ada kelas yang diikuti perubahan besok yang berbeda signifikan dari hari lain, baik di latih "
-            "maupun ujian. Naik kuat hari ini tidak berarti naik lagi besok, dan turun kuat tidak berarti "
+            "maupun data uji. Naik kuat hari ini tidak berarti naik lagi besok, dan turun kuat tidak berarti "
             "berbalik naik." if not sig else f"Kelas dengan beda signifikan: {', '.join(sorted(set(sig)))}.")
             + "</p>", unsafe_allow_html=True)
 
@@ -774,7 +774,7 @@ with tab_sim:
             st.markdown(
                 f"<p class='catatan'>Model dilatih ulang hanya dengan 70% data (validasi {L['n_validasi']} hari di "
                 f"ujungnya), panjang jendela {hp['sequence_length']} hari dan {hp['hidden_size']} unit dipilih dari "
-                f"loss validasi, lalu dinilai pada {L['n_ujian']} hari ujian.</p>", unsafe_allow_html=True)
+                f"loss validasi, lalu dinilai pada {L['n_ujian']} hari data uji.</p>", unsafe_allow_html=True)
             st.dataframe(pd.DataFrame([{
                 "Model": k, "RMSE": v["rmse"], "MAE": v["mae"], "MAPE (%)": v["mape"],
                 "Arah benar (%)": v["direction_accuracy"], "p arah (PT)": v.get("pesaran_timmermann", {}).get("p_value"),
@@ -794,7 +794,7 @@ with tab_sim:
                 fq.add_trace(go.Bar(x=kq["kuintil"], y=kq["naik_kuat"], name="Besok naik kuat", marker_color=C_NAIK))
                 fq.add_trace(go.Bar(x=kq["kuintil"], y=kq["turun_kuat"], name="Besok turun kuat", marker_color=C_TURUN))
                 fq.update_layout(**layout_dasar(barmode="group", height=320, hovermode="closest",
-                                                title=dict(text="Hari ujian dikelompokkan menurut prediksi LSTM"),
+                                                title=dict(text="Hari data uji dikelompokkan menurut prediksi LSTM"),
                                                 xaxis=dict(title="Kuintil prediksi (1 = paling pesimis, 5 = paling optimis)",
                                                            tickmode="array", tickvals=[1, 2, 3, 4, 5]),
                                                 yaxis=dict(title="% hari")))
@@ -808,7 +808,7 @@ with tab_sim:
                     unsafe_allow_html=True)
             with c2:
                 kp = L["kelas_prediksi_pct"]
-                st.markdown("<p class='label'>Kelas yang diprediksi LSTM di data ujian</p>", unsafe_allow_html=True)
+                st.markdown("<p class='label'>Kelas yang diprediksi LSTM di data uji</p>", unsafe_allow_html=True)
                 st.dataframe(pd.DataFrame([{"Kelas": k, "Prediksi LSTM (%)": kp[k],
                                             "Aktual (%)": uj["kelas_pct"][k]} for k in ps["kelas"]]),
                              hide_index=True, width="stretch", column_config={
@@ -818,7 +818,7 @@ with tab_sim:
                     f"<p class='catatan'>Simpangan baku prediksi LSTM {angka_id(L['pred_std_pct'], 3)}% per hari, "
                     f"sedangkan IHSG aktual {angka_id(L['aktual_std_pct'], 2)}%. Korelasi peringkat prediksi dengan "
                     f"aktual {angka_id(L['spearman']['rho'], 3)} (p {angka_id(L['spearman']['p_value'], 2)}). Pada "
-                    f"{L['arah_hari_kuat']['n']} hari ujian yang bergerak kuat, arah LSTM benar "
+                    f"{L['arah_hari_kuat']['n']} hari data uji yang bergerak kuat, arah LSTM benar "
                     f"{angka_id(L['arah_hari_kuat']['benar_pct'], 1)}%.</p>", unsafe_allow_html=True)
 
         if "validitas" in sim:
@@ -827,11 +827,11 @@ with tab_sim:
             bf = v["bonferroni"]
             st.markdown(
                 f"<p class='catatan'>Ada {bf['n_uji']} uji sekaligus, jadi batas signifikansi dikoreksi Bonferroni "
-                f"menjadi p &lt; {angka_id(bf['batas'], 4)} (Dunn, 1961). Yang tetap lolos di latih dan ujian: "
+                f"menjadi p &lt; {angka_id(bf['batas'], 4)} (Dunn, 1961). Yang tetap lolos di latih dan data uji: "
                 f"{'; '.join(x['kondisi'] + ' (' + x['hari'] + ')' for x in bf['hasil'] if x['lolos']) or 'tidak ada'}."
                 "</p>", unsafe_allow_html=True)
             st.dataframe(pd.DataFrame([{
-                "Data": o["bagian"], "IHSG pada": o["hari"], "Koef. kurs": o["b_kurs"], "p kurs": o["p_kurs"],
+                "Data": {"ujian": "uji"}.get(o["bagian"], o["bagian"]), "IHSG pada": o["hari"], "Koef. kurs": o["b_kurs"], "p kurs": o["p_kurs"],
                 "Koef. ΔBI-Rate": o["b_bi"], "p ΔBI-Rate": o["p_bi"], "R²": o["r2"], "n": o["n"]}
                 for o in v["ols_hac"]["hasil"]]), hide_index=True, width="stretch", column_config={
                     "Koef. kurs": st.column_config.NumberColumn(format="%+.3f"),
@@ -889,12 +889,31 @@ with tab_log:
                          "galat_naif_poin": st.column_config.NumberColumn("Galat naif", format="%+.2f"),
                          "perubahan_pct": st.column_config.NumberColumn("Prediksi Δ%", format="%+.3f"),
                          "sebaran_pct": st.column_config.NumberColumn("Sebaran ±%", format="%.3f"),
+                         "versi_model": st.column_config.TextColumn("Versi model"),
+                         "awal_input": st.column_config.TextColumn("Input sejak"),
                      })
+        st.caption("Sesuai Subbab 3.12, setiap baris menyimpan waktu prediksi, tanggal observasi terakhir (H0), "
+                   "versi model, awal rentang input, dan status kualitas data. Baris lama sebelum kolom versi "
+                   "model ditambahkan dibiarkan kosong.")
 
 # ===========================================================================
-# TAB 7  METODOLOGI
+# TAB 8  METODOLOGI (ringkasan Bab III naskah)
 # ===========================================================================
 with tab_met:
+    st.subheader("Data dan periode (Subbab 3.4 sampai 3.7)")
+    st.markdown("""
+| Variabel | Sumber | Catatan |
+|---|---|---|
+| IHSG (Y) | Yahoo Finance `^JKSE` | harga penutupan harian |
+| BI-Rate (X1) | siaran pers RDG Bank Indonesia | 72 keputusan, berlaku sejak tanggal pengumuman |
+| Kurs USD/IDR (X2) | JISDOR Bank Indonesia | Yahoo `IDR=X` hanya cadangan bila JISDOR gagal diunduh |
+| Fed Funds Rate | FRED | hanya untuk skenario M4 |
+
+Periode penelitian 4 Januari 2021 s.d. 20 November 2026: 1.416 hari bursa, tersisa 1.406 baris fitur setelah 10 baris
+pemanasan. Data latih 916 sequence (18 Mar 2021 s.d. 24 Des 2024), validasi 169 (27 Des 2024 s.d. 22 Sep 2025), dan
+data uji 282 (23 Sep 2025 s.d. 20 Nov 2026), dibagi urut waktu tanpa pengacakan.
+""")
+
     st.subheader("Fitur dan target")
     st.markdown("""
 | Fitur | Isi | Peran |
@@ -905,8 +924,15 @@ with tab_met:
 | `d_bi` | perubahan BI-Rate, satuan 25 bps | X1, kejutan kebijakan |
 | `bi_rate` | level BI-Rate | X1, rezim suku bunga |
 
-Kelima fitur ini adalah skenario M3 (model inti). Skenario M0 sampai M2 memakai sebagian fitur, dan M4
-menambahkan selisih BI-Rate dengan Fed Funds Rate sebagai pengembangan terpisah (tab Kontribusi variabel).
+| Skenario (Tabel 3.2) | Fitur | Hipotesis |
+|---|---|---|
+| M0 | `ret_ihsg`, `vol_ihsg` | pembanding riwayat IHSG saja |
+| M1 | M0 + `d_bi`, `bi_rate` | H1: BI-Rate menambah informasi |
+| M2 | M0 + `ret_kurs` | H2: kurs menambah informasi |
+| M3 | kelima fitur (model inti) | H3: keduanya bersama |
+| M4 | M3 + selisih BI-Rate dan Fed Funds Rate | uji tambahan |
+
+Hasil tiap skenario ada di tab Kontribusi variabel.
 
 Target: log return IHSG dari hari t ke t+1, lalu dikembalikan ke level:
 """)
@@ -915,46 +941,74 @@ Target: log return IHSG dari hari t ke t+1, lalu dikembalikan ke level:
                 "model yang diberi level cenderung hanya menyalin harga kemarin. Standardisasi z-score "
                 "di-fit hanya pada data latih.")
 
-    st.subheader("Model dan pelatihan")
+    st.subheader("Model dan pelatihan (Subbab 3.9)")
+    tun = load_json(config.TUNING_PATH)
+    grid_l = sorted({g["sequence_length"] for g in tun["grid"]}) if tun else [5, 10, 20, 40]
+    grid_h = sorted({g["hidden_size"] for g in tun["grid"]}) if tun else [16, 32, 64]
     st.markdown(f"""
 | Parameter | Nilai |
 |---|---|
 | Arsitektur | LSTM {config.NUM_LAYERS} lapis, {config.HIDDEN_SIZE} unit tersembunyi |
-| Panjang jendela | {config.SEQUENCE_LENGTH} hari bursa (dipilih dari loss validasi, `tune.py`) |
+| Panjang jendela | {config.SEQUENCE_LENGTH} hari bursa |
+| Grid tuning | jendela {"/".join(map(str, grid_l))} × unit {"/".join(map(str, grid_h))}, 3 seed, dipilih dari loss validasi (bukan data uji) |
 | Dropout / weight decay | {config.DROPOUT} / {config.WEIGHT_DECAY} |
-| Learning rate / batch | {config.LEARNING_RATE} / {config.BATCH_SIZE} |
-| Epoch | maksimal {config.EPOCHS}, early stopping kesabaran {config.PATIENCE} |
+| Optimizer / loss | Adam (Kingma & Ba, 2014), learning rate {config.LEARNING_RATE} / MSE |
+| Batch / epoch | {config.BATCH_SIZE} / maksimal {config.EPOCHS}, early stopping kesabaran {config.PATIENCE} |
 | Pembagian data | {int(config.TRAIN_SPLIT * 100)}% latih (15% terakhirnya validasi), {int(round((1 - config.TRAIN_SPLIT) * 100))}% uji, urut waktu |
 | Ensemble | rata-rata {len(config.SEEDS)} model, seed {", ".join(map(str, config.SEEDS))} |
-| Pembanding | naif, rata-rata historis, ARIMA (orde dipilih AIC data latih), regresi linear |
-| Uji signifikansi | Diebold-Mariano dengan koreksi Harvey-Leybourne-Newbold |
+| Pembanding (Subbab 3.8) | naif, rata-rata historis, ARIMA (orde dipilih AIC data latih), regresi linear |
 """)
-    st.markdown("Model untuk prediksi H+1 dilatih ulang dengan seluruh data setelah evaluasi, "
-                "supaya memakai informasi terbaru.")
+    st.markdown("Model untuk prediksi H+1 di dashboard memakai bobot yang dibekukan setelah evaluasi dan tidak "
+                "dilatih ulang setiap hari, sehingga rekam jejak forward test tetap jujur.")
 
-    st.subheader("Hubungan teori (Bab II)")
+    st.subheader("Metode pengujian dan rujukan (Subbab 3.10 dan 3.11)")
+    st.markdown("""
+| Tujuan | Metode | Rujukan |
+|---|---|---|
+| Galat prediksi | RMSE, MAE, MAPE (Tabel 3.3) | |
+| LSTM vs pembanding | Diebold-Mariano dengan koreksi HLN | Diebold & Mariano (1995); Harvey dkk. (1997) |
+| Akurasi arah | uji Pesaran-Timmermann | Pesaran & Timmermann (1992) |
+| Daya prediksi vs rata-rata historis | R² out-of-sample | Campbell & Thompson (2008) |
+| Kestabilan antarperiode | walk-forward 5 lipatan, expanding window | Tashman (2000) |
+| Ketergantungan pada variabel | permutation importance, 30 pengacakan | Breiman (2001) |
+| Efek hari yang sama | OLS, galat baku Newey-West | Newey & West (1987) |
+| Efek hari berikutnya | VAR, lag dipilih AIC, uji Granger, impulse response | Sims (1980); Akaike (1974); Granger (1969) |
+| Reaksi terhadap RDG | studi peristiwa CAR dan uji Patell | Brown & Warner (1985); Patell (1976) |
+| Simulasi 70/30 | t-test Welch, Mann-Whitney, koreksi Bonferroni | Welch (1947); Mann & Whitney (1947); Dunn (1961) |
+| Diagnosis LSTM | korelasi Spearman, uji khi-kuadrat | Spearman (1904); Pearson (1900) |
+""")
+
+    st.subheader("Hubungan teori (Subbab 2.1.5)")
     st.markdown("""
 | BI-Rate | Kurs USD/IDR | Harapan terhadap IHSG | Mekanisme |
 |---|---|---|---|
-| Naik | Naik (rupiah melemah) | Cenderung turun | Bunga tinggi menurunkan valuasi; rupiah melemah memicu modal asing keluar. |
-| Turun | Turun (rupiah menguat) | Cenderung naik | Likuiditas longgar dan rupiah menguat menarik modal masuk. |
+| Naik | Naik (rupiah melemah) | Cenderung turun | Biaya kredit naik dan imbal hasil instrumen lain lebih menarik; rupiah melemah menaikkan biaya impor dan kewajiban valas. |
+| Turun | Turun (rupiah menguat) | Cenderung naik | Biaya kredit turun dan persepsi risiko membaik. |
 | Naik | Turun (rupiah menguat) | Campuran | Tekanan bunga diimbangi stabilitas mata uang. |
-| Turun | Naik (rupiah melemah) | Campuran | Stimulus bunga diimbangi risiko inflasi impor. |
+| Turun | Naik (rupiah melemah) | Campuran | Stimulus bunga diimbangi risiko biaya impor. |
+
+Bukti terdahulu tidak seragam: Kewal (2012) menemukan kurs signifikan tetapi suku bunga tidak, sedangkan Gery (2023)
+menemukan keduanya signifikan. Hasil penelitian ini (Subbab 4.9): kurs berkaitan kuat dengan IHSG pada hari yang sama,
+tetapi tidak membantu meramal hari berikutnya; BI-Rate tidak signifikan pada data harian.
 """)
 
-    st.subheader("Batasan (Bab IV)")
+    st.subheader("Etika, validitas, dan batasan (Subbab 3.14 dan 4.9)")
     st.markdown("""
-1. Korelasi bukan kausalitas: angka di tab Hubungan X dan Y menunjukkan gerak bersama, bukan sebab-akibat.
-2. Return harian IHSG mendekati acak (random walk), sehingga tebakan naif sangat sulit dikalahkan. Hasil LSTM yang setara naif adalah temuan yang sah, bukan kegagalan teknis.
-3. BI-Rate hanya diputuskan sekali sebulan (RDG) dan jarang berubah, jadi sampel perubahan suku bunga jauh lebih sedikit daripada pergerakan kurs harian.
-4. Pelemahan rupiah merugikan emiten berutang valas tetapi menguntungkan eksportir; efek ke indeks gabungan bisa saling meniadakan.
+1. Prediksi bukan kepastian kondisi pasar dan bukan rekomendasi investasi.
+2. Korelasi bukan kausalitas: angka di tab Hubungan X dan Y menunjukkan gerak bersama, bukan sebab-akibat.
+3. Validitas dijaga dengan pembagian data menurut waktu, Standardisasi yang di-fit hanya pada data latih, pemilihan hyperparameter dari data validasi, dan pembandingan dengan model naif.
+4. Return harian IHSG mendekati acak, sejalan dengan hipotesis pasar efisien bentuk lemah (Fama, 1970). LSTM yang setara dengan model naif adalah temuan yang sah, bukan kegagalan teknis.
+5. BI-Rate hanya berubah 19 kali selama periode (12 naik, 7 turun) dan keputusan RDG umumnya sudah diantisipasi pasar; studi peristiwa tanpa data ekspektasi tidak dapat memisahkan kejutan kebijakan.
+6. Frekuensi pembaruan IHSG, BI-Rate, dan JISDOR berbeda; kinerja model dapat turun saat terjadi perubahan rezim pasar.
 """)
 
     st.subheader("Status berkas")
     berkas = [("IHSG", config.IHSG_CSV), ("BI-Rate", config.BI_RATE_CSV), ("Kurs USD/IDR", config.KURS_CSV),
               ("Fed Funds Rate", config.FEDFUNDS_CSV), ("Dataset latih", config.DATASET_CSV),
-              ("Model LSTM", config.MODEL_PATH), ("Metrik evaluasi", config.METRICS_PATH),
-              ("Walk-forward", config.WALKFORWARD_PATH), ("Eksperimen M0-M4", config.EXPERIMENTS_PATH),
-              ("Ekonometrika", config.ECONOMETRICS_PATH), ("Log prediksi harian", config.PREDICTION_LOG)]
+              ("Model LSTM", config.MODEL_PATH), ("Tuning", config.TUNING_PATH),
+              ("Metrik evaluasi", config.METRICS_PATH), ("Walk-forward", config.WALKFORWARD_PATH),
+              ("Eksperimen M0-M4", config.EXPERIMENTS_PATH), ("Ekonometrika", config.ECONOMETRICS_PATH),
+              ("Simulasi 70/30", os.path.join(config.MODEL_DIR, "simulasi.json")),
+              ("Log prediksi harian", config.PREDICTION_LOG)]
     st.dataframe(pd.DataFrame([{"Berkas": n, "Path": p, "Ada": "ya" if os.path.exists(p) else "belum"}
                                for n, p in berkas]), hide_index=True, width="stretch")
