@@ -49,6 +49,8 @@ PORSI_LATIH = 0.70
 KUAT, DATAR = 1.0, 0.25          # ambang kelas IHSG (%)
 KURS_AMBANG = 0.25               # ambang kurs naik/turun (%)
 MIN_N = 8                        # di bawah ini tidak disimpulkan
+HAC_LAG = 5                      # lag Newey-West (1 minggu bursa)
+VOL_LSTM = 20                    # jendela volatilitas untuk diagnosis LSTM (hari)
 KELAS = ["turun kuat", "turun lemah", "datar", "naik lemah", "naik kuat"]
 KURS = ["naik", "tetap", "turun"]
 SIKLUS = ["pengetatan", "pelonggaran"]
@@ -235,6 +237,64 @@ def lstm(df, d, a, tuning=None):
             "per_kondisi": per_kondisi, "pred_std_pct": float(u["pred"].std()), "aktual_std_pct": float(u["r1"].std())}
 
 
+def validitas(d, pola_res):
+    """Uji ketahanan: koreksi Bonferroni, Mann-Whitney, regresi OLS dengan galat baku
+    Newey-West (HAC), dan diagnosis prediksi LSTM terhadap volatilitas."""
+    import statsmodels.api as sm
+    n_uji = sum(1 for r in pola_res for h in ("H0", "H+1") if r[f"{h} latih"]["p"] is not None)
+    batas = 0.05 / n_uji
+    bonf = [{"kondisi": r["kondisi"], "hari": h, "p_latih": r[f"{h} latih"]["p"], "p_ujian": r[f"{h} ujian"]["p"],
+             "lolos": bool(r[f"{h} latih"]["p"] < batas and (r[f"{h} ujian"]["p"] or 1) < batas)}
+            for r in pola_res for h in ("H0", "H+1") if r[f"{h} status"] == "terbukti"]
+    mw, ols = [], []
+    for b in ("latih", "ujian"):
+        x = d[d["bagian"] == b]
+        for k in ("naik", "turun"):
+            for h, kol in (("H0", "r0"), ("H+1", "r1")):
+                g, sisa = x.loc[x["kurs"] == k, kol].dropna(), x.loc[x["kurs"] != k, kol].dropna()
+                mw.append({"bagian": b, "kurs": k, "hari": h, "n": int(len(g)),
+                           "p": float(stats.mannwhitneyu(g, sisa).pvalue)})
+        for h, kol in (("H0", "r0"), ("H+1", "r1")):
+            y = x[[kol, "kurs_pct", "d_bi"]].dropna()
+            m = sm.OLS(y[kol], sm.add_constant(y[["kurs_pct", "d_bi"]])).fit(
+                cov_type="HAC", cov_kwds={"maxlags": HAC_LAG})
+            ols.append({"bagian": b, "hari": h, "b_kurs": float(m.params["kurs_pct"]),
+                        "p_kurs": float(m.pvalues["kurs_pct"]), "b_bi": float(m.params["d_bi"]),
+                        "p_bi": float(m.pvalues["d_bi"]), "r2": float(m.rsquared), "n": int(m.nobs)})
+    out = {"bonferroni": {"n_uji": n_uji, "batas": batas, "hasil": bonf}, "mann_whitney": mw,
+           "ols_hac": {"maxlags": HAC_LAG, "hasil": ols}}
+    f = os.path.join(config.MODEL_DIR, "simulasi_prediksi_ujian.csv")
+    if os.path.exists(f):
+        u = pd.read_csv(f, parse_dates=["date"])
+        vol = pd.DataFrame({"date": d["date"], "vol20": d["r0"].abs().rolling(VOL_LSTM).mean()})
+        u = u.merge(vol, on="date", how="left")
+        u["q"] = pd.qcut(u["pred"].rank(method="first"), 5, labels=False)
+        ct = pd.crosstab(u["q"], u["kelas1"].isin(["naik kuat", "turun kuat"]))
+        sp = lambda a, b: dict(zip(("rho", "p"), map(float, stats.spearmanr(a, b, nan_policy="omit"))))  # noqa: E731
+        out["lstm"] = {"pred_min": float(u["pred"].min()), "pred_max": float(u["pred"].max()),
+                       "pred_std": float(u["pred"].std()), "pct_pred_positif": float((u["pred"] > 0).mean() * 100),
+                       "pct_aktual_positif": float((u["r1"] > 0).mean() * 100),
+                       "vs_volatilitas": sp(u["pred"], u["vol20"]), "vs_besar_gerak": sp(u["pred"], u["r1"].abs()),
+                       "vs_arah": sp(u["pred"], u["r1"]), "chi2_kuintil_kuat_p": float(stats.chi2_contingency(ct)[1])}
+    return out
+
+
+def sensitivitas():
+    """Ulangi analisis pola dengan ambang lain untuk memastikan kesimpulan tidak bergantung pada pilihan ambang."""
+    global KUAT, DATAR, KURS_AMBANG
+    asli = KUAT, DATAR, KURS_AMBANG
+    out = []
+    for kuat, datar, kurs in [(1.0, 0.25, 0.25), (1.5, 0.25, 0.25), (0.75, 0.2, 0.25), (1.0, 0.25, 0.10),
+                              (1.0, 0.25, 0.50)]:
+        KUAT, DATAR, KURS_AMBANG = kuat, datar, kurs
+        p = pola(siapkan()[1])
+        out.append({"kuat": kuat, "datar": datar, "kurs": kurs,
+                    "h0": sum(r["H0 status"] == "terbukti" for r in p),
+                    "h1": sum(r["H+1 status"] == "terbukti" for r in p)})
+    KUAT, DATAR, KURS_AMBANG = asli
+    return out
+
+
 def cetak(res):
     print("\n=== 1. Distribusi kelas IHSG ===")
     for b, x in res["distribusi"].items():
@@ -279,7 +339,17 @@ def main():
         print(f"  ({time.time() - t:.0f} detik)")
     elif "lstm" in lama:
         res["lstm"] = lama["lstm"]
+    res["validitas"] = validitas(d, res["pola"])
+    res["validitas"]["sensitivitas"] = sensitivitas()
     cetak(res)
+    v = res["validitas"]
+    print(f"\n=== 5. Validitas ===\n  Bonferroni ({v['bonferroni']['n_uji']} uji, batas {v['bonferroni']['batas']:.4f}): "
+          + ", ".join(f"{x['kondisi']} {x['hari']}" for x in v["bonferroni"]["hasil"] if x["lolos"]))
+    for o in v["ols_hac"]["hasil"]:
+        print(f"  OLS-HAC {o['bagian']:<5} {o['hari']:<3} kurs {o['b_kurs']:+.3f} (p {o['p_kurs']:.4f}) | "
+              f"d_bi p {o['p_bi']:.3f} | R2 {o['r2']:.4f}")
+    for s in v["sensitivitas"]:
+        print(f"  ambang kuat {s['kuat']} kurs {s['kurs']}: H0 terbukti {s['h0']} | H+1 terbukti {s['h1']}")
     with open(PATH, "w", encoding="utf-8") as f:
         json.dump(res, f, indent=2, ensure_ascii=False, default=float)
     print(f"\nTersimpan: {PATH}")

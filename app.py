@@ -821,6 +821,43 @@ with tab_sim:
                     f"{L['arah_hari_kuat']['n']} hari ujian yang bergerak kuat, arah LSTM benar "
                     f"{angka_id(L['arah_hari_kuat']['benar_pct'], 1)}%.</p>", unsafe_allow_html=True)
 
+        if "validitas" in sim:
+            v = sim["validitas"]
+            st.subheader("5. Uji ketahanan hasil")
+            bf = v["bonferroni"]
+            st.markdown(
+                f"<p class='catatan'>Ada {bf['n_uji']} uji sekaligus, jadi batas signifikansi dikoreksi Bonferroni "
+                f"menjadi p &lt; {angka_id(bf['batas'], 4)} (Dunn, 1961). Yang tetap lolos di latih dan ujian: "
+                f"{'; '.join(x['kondisi'] + ' (' + x['hari'] + ')' for x in bf['hasil'] if x['lolos']) or 'tidak ada'}."
+                "</p>", unsafe_allow_html=True)
+            st.dataframe(pd.DataFrame([{
+                "Data": o["bagian"], "IHSG pada": o["hari"], "Koef. kurs": o["b_kurs"], "p kurs": o["p_kurs"],
+                "Koef. ΔBI-Rate": o["b_bi"], "p ΔBI-Rate": o["p_bi"], "R²": o["r2"], "n": o["n"]}
+                for o in v["ols_hac"]["hasil"]]), hide_index=True, width="stretch", column_config={
+                    "Koef. kurs": st.column_config.NumberColumn(format="%+.3f"),
+                    "p kurs": st.column_config.NumberColumn(format="%.4f"),
+                    "Koef. ΔBI-Rate": st.column_config.NumberColumn(format="%+.3f"),
+                    "p ΔBI-Rate": st.column_config.NumberColumn(format="%.3f"),
+                    "R²": st.column_config.NumberColumn(format="%.4f")})
+            st.markdown(
+                f"<p class='catatan'>Regresi OLS perubahan IHSG (%) terhadap perubahan kurs (%) dan perubahan BI-Rate "
+                f"(poin persen), galat baku Newey-West dengan {v['ols_hac']['maxlags']} lag (Newey &amp; West, 1987). "
+                "Uji Mann-Whitney (Mann &amp; Whitney, 1947) yang tidak mengasumsikan distribusi normal memberi "
+                "kesimpulan sama.</p>", unsafe_allow_html=True)
+            st.dataframe(pd.DataFrame([{"Ambang kuat (±%)": s["kuat"], "Ambang kurs (±%)": s["kurs"],
+                                        "Pola H0 terbukti": s["h0"], "Pola H+1 terbukti": s["h1"]}
+                                       for s in v["sensitivitas"]]), hide_index=True, width="stretch")
+            if "lstm" in v:
+                lv = v["lstm"]
+                st.markdown(
+                    f"<p class='catatan'>Diagnosis LSTM: prediksi berkisar {angka_id(lv['pred_min'], 3)}% s.d. "
+                    f"{angka_id(lv['pred_max'], 3)}%, {angka_id(lv['pct_pred_positif'], 0)}% di antaranya positif "
+                    f"(IHSG aktual naik {angka_id(lv['pct_aktual_positif'], 0)}% hari). Korelasi Spearman prediksi "
+                    f"dengan volatilitas 20 hari terakhir {angka_id(lv['vs_volatilitas']['rho'], 2)}, dengan besar "
+                    f"gerak besok {angka_id(lv['vs_besar_gerak']['rho'], 2)}, tetapi dengan arah besok "
+                    f"{angka_id(lv['vs_arah']['rho'], 2)} (p {angka_id(lv['vs_arah']['p'], 2)}). Prediksi LSTM "
+                    "mengikuti tingkat gejolak, bukan arah IHSG.</p>", unsafe_allow_html=True)
+
 # ===========================================================================
 # TAB 7  REKAM JEJAK (forward test)
 # ===========================================================================
